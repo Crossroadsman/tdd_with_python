@@ -13,3 +13,10 @@ Error: no DISPLAY environment variable specified
 1540416923481	Marionette	DEBUG	[2147483649] Received DOM event beforeunload for about:blank
 1540416923492	Marionette	DEBUG	[2147483649] Received DOM event pagehide for about:blank
 1540416923609	Marionette	DEBUG	[2147483649] Received DOM event DOMContentLoaded for about:neterror?e=connectionFailure&u=http%3A//localhost%3A8000/&c=UTF-8&f=regular&d=Firefox%20can%E2%80%99t%20establish%20a%20connection%20to%20the%20server%20at%20localhost%3A8000.
+1540461275091	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.KzlWumKCZNql"
+Error: no DISPLAY environment variable specified
+1540461363576	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.hXEiXOZfh1r6"
+
+(firefox:21148): LIBDBUSMENU-GLIB-WARNING **: 10:56:05.306: Unable to get session bus: Failed to execute child process “dbus-launch” (No such file or directory)
+1540461366461	Marionette	INFO	Listening on port 37811
+1540461366507	Marionette	WARN	TLS certificate errors will be ignored for this session
