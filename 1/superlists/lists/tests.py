@@ -31,4 +31,4 @@ class HomePageTest(TestCase):
         # - ends with a closing html tag
         self.assertTrue(html.startswith('<!doctype html>'))
         self.assertIn('<title>To-Do lists</title>', html)
-        self.assertTrue(html.endswith('</html>'))
+        self.assertTrue(html.strip().endswith('</html>'))
