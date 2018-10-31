@@ -1,10 +1,12 @@
+from django.urls import resolve
 from django.test import TestCase
+from lists.views import home_page
 
-class SmokeTest(TestCase):
-    # This is a deliberately silly failing test to verify that the 
-    # test runner is actually seeing this TestCase
-    # (the django test runner is invoked using
-    #     $ python3 manage.py test
-    # )
-    def test_bad_maths(self):
-        self.assertEqual(1 + 1, 3)
+
+class HomePageTest(TestCase):
+
+    def test_root_url_resolves_to_home_page_view(self):
+        # for explanation of resolve(), see:
+        # https://docs.djangoproject.com/en/2.1/ref/urlresolvers/#resolve
+        found = resolve('/')
+        self.assertEqual(found.func, home_page)
