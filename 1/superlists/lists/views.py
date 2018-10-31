@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+home_page = None  # the minimum code to resolve the previous test failure
