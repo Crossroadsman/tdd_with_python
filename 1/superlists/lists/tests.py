@@ -1,6 +1,7 @@
 from django.urls import resolve
 from django.test import TestCase
 
+from lists.models import Item
 from lists.views import home_page
 
 
@@ -48,3 +49,27 @@ class HomePageTest(TestCase):
         print(response_text)
         print("----- End Python string -----")
         self.assertIn(self.item_text, response_text)
+
+
+class ItemModelTest(TestCase):
+
+    def test_saved_items_can_be_retrieved(self):
+        """This test hits the database and thus is not a real unit test.
+        It should more properly be described as an integration test.
+        We will return to this later.
+        """
+        first_item = Item()
+        first_item.text = 'The first (ever) list item'
+        first_item.save()
+
+        second_item = Item()
+        second_item.text = 'Item the second'
+        second_item.save()
+
+        saved_items = Item.objects.all()
+        self.assertEqual(2, saved_items.count())
+
+        first_saved_item = saved_items[0]
+        second_saved_item = saved_items[1]
+        self.assertEqual('The first (ever) list item', first_saved_item.text)
+        self.assertEqual('Item the second', second_saved_item.text)
