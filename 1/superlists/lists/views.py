@@ -3,8 +3,9 @@ from django.shortcuts import render
 
 
 def home_page(request):
-    if request.method == 'POST':
-        return HttpResponse(request.POST['item_text'])
-    # GET
     template = 'lists/home.html'
-    return render(request, template)
+    if request.method == 'POST':
+        context = {'new_item_text': request.POST['item_text']}
+    else:  # GET
+        context = {}
+    return render(request, template, context)
