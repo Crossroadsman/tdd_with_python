@@ -25,7 +25,9 @@ SECRET_KEY = 'jk9ep9d0eau6j31(6k-7$1#)w&7ud6i(^ntuwf2-er80phcw_g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# The list of host/domain names that this site can serve
+# (To protect against HTTP Host header attacks)
+ALLOWED_HOSTS = ['localhost', '.koumparossoftware.com']
 
 
 # Application definition

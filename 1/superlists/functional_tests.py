@@ -40,15 +40,31 @@ export DISPLAY=:10
 """
 class NewVisitorTest(unittest.TestCase):
 
+    # setUp and tearDown
+    # ------------------
     def setUp(self):
         self.browser = webdriver.Firefox()
 
     def tearDown(self):
         self.browser.quit()
 
+    # helper methods
+    # --------------
+    def get_table_row_texts(self):
+        table = self.browser.find_element_by_id('id_list_table')
+        rows = table.find_elements_by_tag_name('tr')
+        return [row.text for row in rows]
+
+    # Tests
+    # -----
     def test_can_start_a_list_and_retrieve_it_later(self):
         """TODO 20181025: This is a huge test that tests a whole bunch of 
         things. Is this typical for functional tests?
+
+        A 20181101: It seems necessary for a functional (=integration)
+        test to be long and include a bunch of things since the single
+        piece of functionality we are testing is the user's ability to
+        complete a task, which comprises a sequence of user interactions.
         """
 
         # Alice has heard about a cool new online to-do app. She goes to 
@@ -75,24 +91,26 @@ class NewVisitorTest(unittest.TestCase):
         # When she hits enter, the page updates, and now the page lists
         # "1: Buy peacock feathers" as an item in a to-do list
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(1)  # seconds
 
-        table = self.browser.find_element_by_id('id_list_table')
-        rows = table.find_elements_by_tag_name('tr')
-        self.assertTrue(
-            any(row.text == '1: Buy peacock feathers' for row in rows),
-            "New to-do item did not appear in table"
-        )
+        self.assertIn('1: Buy peacock feathers', self.get_table_row_texts())
 
         # There is still a text box inviting her to add another item. She
         # enters "Use peacock feathers to make a fly"
-        self.fail('Finish the test!')
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Use peacock feathers to make a fly')
+        inputbox.send_keys(Keys.ENTER)
+        time.sleep(1)
 
         # The page updates again, and now shows both items on her list
+        row_texts = self.get_table_row_texts()
+        self.assertIn('1: Buy peacock feathers', row_texts)
+        self.assertIn('2: Use peacock feathers to make a fly', row_texts)
 
         # Alice wants the site to remember he list. She sees that the site
         # has generated a unique URL for her, together with explanatory text
         # to that effect.
+        self.fail('Finish the test!')
 
         # She visits the URL: her to-do list is still there.
 
