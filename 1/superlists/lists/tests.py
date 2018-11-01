@@ -11,6 +11,7 @@ class HomePageTest(TestCase):
         self.post_data = {'item_text': self.item_text}
 
     def test_home_page_GET_uses_home_template(self):
+        """Make sure that GET requests use the correct template"""
         # instead of manually creating an HttpRequest object (as we did
         # in the earlier version of this test, we can use self.client.get
         # (part of the Django extensions to TestCase)
@@ -23,10 +24,13 @@ class HomePageTest(TestCase):
         self.assertTemplateUsed(response, 'lists/home.html')
 
     def test_home_page_POST_uses_home_template(self):
+        """Make sure POST requests use the correct template"""
         response = self.client.post('/', data=self.post_data)
         self.assertTemplateUsed(response, 'lists/home.html')
 
     def test_home_page_can_save_POST_request(self):
+        """Make sure the home page can make POST requests that the view
+        can handle"""
 
         # self.client.post takes a `data` argument that contains a
         # dictionary of the form data, where the key is the
@@ -54,7 +58,9 @@ class HomePageTest(TestCase):
 class ItemModelTest(TestCase):
 
     def test_saved_items_can_be_retrieved(self):
-        """This test hits the database and thus is not a real unit test.
+        """Ensure saaved items are persisted and can be retrieved.
+
+        This test hits the database and thus is not a real unit test.
         It should more properly be described as an integration test.
         We will return to this later.
         """
