@@ -23,11 +23,6 @@ class HomePageTest(TestCase):
         # the right content is shown to the user).
         self.assertTemplateUsed(response, 'lists/home.html')
 
-    def test_home_page_POST_uses_home_template(self):
-        """Make sure POST requests use the correct template"""
-        response = self.client.post('/', data=self.post_data)
-        self.assertTemplateUsed(response, 'lists/home.html')
-
     def test_home_page_can_save_POST_request(self):
         """Make sure the home page can make POST requests that the view
         can handle"""
