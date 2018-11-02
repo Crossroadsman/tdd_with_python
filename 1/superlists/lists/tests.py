@@ -57,7 +57,9 @@ class HomePageTest(TestCase):
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, self.item_text)
 
-        self.assertIn(self.item_text, response_text)
+        # We are following the principle of always redirecting after a POST
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '/')
 
     def test_GET_requests_do_not_save_to_db(self):
         self.client.get('/')
