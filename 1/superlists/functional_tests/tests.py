@@ -1,5 +1,6 @@
-import unittest
 import time
+
+from django.test import LiveServerTestCase
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -38,7 +39,7 @@ export DISPLAY=:10
 """Tests
    -----
 """
-class NewVisitorTest(unittest.TestCase):
+class NewVisitorTest(LiveServerTestCase):
 
     # setUp and tearDown
     # ------------------
@@ -69,7 +70,7 @@ class NewVisitorTest(unittest.TestCase):
 
         # Alice has heard about a cool new online to-do app. She goes to 
         # check out its homepage
-        self.browser.get('http://localhost:8000')
+        self.browser.get(self.live_server_url)
 
         # She notices the page title and header mention to-do lists
         target_text = 'To-Do'
