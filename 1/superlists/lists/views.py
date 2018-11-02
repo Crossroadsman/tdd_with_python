@@ -8,6 +8,7 @@ def home_page(request):
         Item.objects.create(text=request.POST['item_text'])
         return redirect('/')
     # GET
+    items = Item.objects.all()
     template = 'lists/home.html'
-    context = {}
+    context = {'items': items,}
     return render(request, template, context)
