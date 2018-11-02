@@ -52,7 +52,12 @@ class HomePageTest(TestCase):
         print("----- Here is what the Python string looks like -----")
         print(response_text)
         print("----- End Python string -----")
-        self.assertIn(self.item_text, response_text)
+        
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, self.item_text)
+
+        self.assertIn(response_text, self.item_text)
 
 
 class ItemModelTest(TestCase):
@@ -73,9 +78,9 @@ class ItemModelTest(TestCase):
         second_item.save()
 
         saved_items = Item.objects.all()
-        self.assertEqual(2, saved_items.count())
+        self.assertEqual(saved_items.count(), 2)
 
         first_saved_item = saved_items[0]
         second_saved_item = saved_items[1]
-        self.assertEqual('The first (ever) list item', first_saved_item.text)
-        self.assertEqual('Item the second', second_saved_item.text)
+        self.assertEqual(first_saved_item.text, 'The first (ever) list item')
+        self.assertEqual(second_saved_item.text, 'Item the second')
