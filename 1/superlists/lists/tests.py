@@ -10,7 +10,7 @@ class HomePageTest(TestCase):
         self.item_text = 'A new list item'
         self.post_data = {'item_text': self.item_text}
 
-    def test_home_page_GET_uses_home_template(self):
+    def test_GET_uses_home_template(self):
         """Make sure that GET requests use the correct template"""
         # instead of manually creating an HttpRequest object (as we did
         # in the earlier version of this test, we can use self.client.get
@@ -23,7 +23,7 @@ class HomePageTest(TestCase):
         # the right content is shown to the user).
         self.assertTemplateUsed(response, 'lists/home.html')
 
-    def test_home_page_can_save_POST_request(self):
+    def test_can_save_POST_request(self):
         """Make sure the home page can make POST requests that update
         the database
         """
@@ -33,7 +33,7 @@ class HomePageTest(TestCase):
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, self.item_text)
 
-    def test_home_page_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
         """Make sure the home page redirects after a POST"""
 
         # self.client.post takes a `data` argument that contains a
@@ -41,13 +41,20 @@ class HomePageTest(TestCase):
         # form's `name` attribute and the value is whatever we want
         # to supply as a value to that form input.
         response = self.client.post('/', data=self.post_data)
+        
+        # We are following the principle of always redirecting after a POST
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '/')
 
-        # Update 20181101: This code path no longer renders a template,
-        # instead it redirects to another view. As such there is now no
-        # response.content.
-        # The following has been left in place for now as it is helpful
-        # for visualising bytesequences vs strings and UTF-8 encodinng
-        #.
+    def test_GET_requests_do_not_save_to_db(self):
+        self.client.get('/')
+        self.assertEqual(Item.objects.count(), 0)
+
+    def test_displays_all_list_items(self):
+        Item.objects.create(text='item 1')
+        Item.objects.create(text='item 2')
+
+        response = self.client.get('/')
         # The HttpResponse object has a `content` attribute which is of
         # type byte sequence (`bytes`)
         # `bytes` has a `decode(encoding="utf-8", errors="strict)` method
@@ -62,14 +69,9 @@ class HomePageTest(TestCase):
         print("----- Here is what the Python string looks like -----")
         print(response_text)
         print("----- End Python string -----")
-        
-        # We are following the principle of always redirecting after a POST
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/')
 
-    def test_GET_requests_do_not_save_to_db(self):
-        self.client.get('/')
-        self.assertEqual(Item.objects.count(), 0)
+        self.assertIn('item 1', response_text)
+        self.assertIn('item 2', response_text)
 
 
 class ItemModelTest(TestCase):
