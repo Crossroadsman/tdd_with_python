@@ -51,8 +51,8 @@ class HomePageTest(TestCase):
         self.assertEqual(Item.objects.count(), 0)
 
     def test_displays_all_list_items(self):
-        Item.objects.create(text='item 1')
-        Item.objects.create(text='item 2')
+        Item.objects.create(text='item 1: puppies')
+        Item.objects.create(text='item 2: pens')
 
         response = self.client.get('/')
         # The HttpResponse object has a `content` attribute which is of
@@ -70,8 +70,8 @@ class HomePageTest(TestCase):
         print(response_text)
         print("----- End Python string -----")
 
-        self.assertIn('item 1', response_text)
-        self.assertIn('item 2', response_text)
+        self.assertIn('item 1: puppies', response_text)
+        self.assertIn('item 2: pens', response_text)
 
 
 class ItemModelTest(TestCase):
