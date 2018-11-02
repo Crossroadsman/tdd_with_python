@@ -57,7 +57,11 @@ class HomePageTest(TestCase):
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, self.item_text)
 
-        self.assertIn(response_text, self.item_text)
+        self.assertIn(self.item_text, response_text)
+
+        def test_GET_requests_do_not_save_to_db(self):
+            self.client.get('/')
+            self.assertEqual(Item.objects.count(), 0)
 
 
 class ItemModelTest(TestCase):
