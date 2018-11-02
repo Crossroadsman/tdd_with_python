@@ -145,6 +145,35 @@ class NewVisitorTest(LiveServerTestCase):
         #   with /lists/
         alice_list_url = self.browser.current_url
         self.assertRegex(alice_list_url, '/lists/.+')
+
+        # In the meantime, Bob accesses the site.
+        # (We will use a new browser session to ensure that no information
+        # from Alice's session is coming through, e.g., from cookies)
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
+
+        # Bob visits the home page, there is no sign of Alice's list
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertNotIn('make a fly', page_text)
+
+        # Bob starts a new list by entering a new item. His is less
+        # interesting than Alice
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy milk')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy milk')
+
+        # Bob gets his own unique URL of the same form
+        bob_list_url = self.browser.current_url
+        self.assertRegex(bob_list_url, '/list/.+')
+        self.assertNotEqual(bob_list_url, alice_list_url)
+
+        # Still no trace of Alice's list
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertIn('Buy milk', page_text)
         
         # - the id (after the /lists/) uniquely identifies her list
         self.fail('Finish the test!')
