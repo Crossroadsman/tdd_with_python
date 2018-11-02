@@ -41,7 +41,7 @@ export DISPLAY=:10
 """Constants
    ---------
 """
-MAX_WAIT = 20  # some values were occasionally expiring when set to 10
+MAX_WAIT = 10  # some values were occasionally expiring when set to 10
 
 
 """Tests
@@ -60,6 +60,21 @@ class NewVisitorTest(LiveServerTestCase):
     # helper methods
     # --------------
     def get_table_row_texts(self):
+
+        # we were getting selenium StaleElementException with the sleep
+        # in the original location. This might be because on the first
+        # iteration of the loop, the page is still loading (longer now
+        # because of redirect after POST). Thus between id_list_table
+        # being assigned to table and querying table for `tr` elements
+        # the trs had gone stale.
+        # Thus we put a sleep before we assign to table so that when
+        # we do get `id_list_table` it is from the fully loaded page
+        # and so not stale when we go back to look for `tr` elements
+        # This has now worked at least once since moving the sleep
+        # but Internet weather might cause a failure in the future if
+        # load time is particularly slow. At that time we could consider
+        # raising the sleep time.
+        time.sleep(1) # give page a moment to load
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
         return [row.text for row in rows]
@@ -77,7 +92,7 @@ class NewVisitorTest(LiveServerTestCase):
                 # if the page hasn't loaded
                 if time.time() - start_time > MAX_WAIT:
                     raise e
-                time.sleep(0.5)
+                # time.sleep(0.5)  # move sleep into get_table_row_texts
             else:
                 return
 
