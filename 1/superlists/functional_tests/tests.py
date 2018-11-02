@@ -1,8 +1,10 @@
-import unittest
 import time
+
+from django.test import LiveServerTestCase
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
 """Functional Tests vs Unit Tests:
    ------------------------------
 See also:
@@ -35,10 +37,17 @@ export DISPLAY=:10
 ```
 """
 
+
+"""Constants
+   ---------
+"""
+MAX_WAIT = 20
+
+
 """Tests
    -----
 """
-class NewVisitorTest(unittest.TestCase):
+class NewVisitorTest(LiveServerTestCase):
 
     # setUp and tearDown
     # ------------------
@@ -55,6 +64,24 @@ class NewVisitorTest(unittest.TestCase):
         rows = table.find_elements_by_tag_name('tr')
         return [row.text for row in rows]
 
+    def wait_for_row_in_list_table(self, row_text):
+        start_time = time.time()
+        while True:
+            row_texts = self.get_table_row_texts()
+            try:
+                self.assertIn(row_text, row_texts)
+            except (AssertionError, WebDriverException) as e:
+                # We need both types of error/exception:
+                # AssertionError will fire if the table exists but the
+                # row isn't in there yet; WebDriverException will fire
+                # if the page hasn't loaded
+                if time.time() - start_time > MAX_WAIT:
+                    raise e
+                time.sleep(0.5)
+            else:
+                return
+
+
     # Tests
     # -----
     def test_can_start_a_list_and_retrieve_it_later(self):
@@ -69,7 +96,7 @@ class NewVisitorTest(unittest.TestCase):
 
         # Alice has heard about a cool new online to-do app. She goes to 
         # check out its homepage
-        self.browser.get('http://localhost:8000')
+        self.browser.get(self.live_server_url)
 
         # She notices the page title and header mention to-do lists
         target_text = 'To-Do'
@@ -91,21 +118,17 @@ class NewVisitorTest(unittest.TestCase):
         # When she hits enter, the page updates, and now the page lists
         # "1: Buy peacock feathers" as an item in a to-do list
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(1)  # seconds
-
-        self.assertIn('1: Buy peacock feathers', self.get_table_row_texts())
+        self.wait_for_row_in_list_table('1: Buy peacock feathers')
 
         # There is still a text box inviting her to add another item. She
         # enters "Use peacock feathers to make a fly"
         inputbox = self.browser.find_element_by_id('id_new_item')
         inputbox.send_keys('Use peacock feathers to make a fly')
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(1)
 
         # The page updates again, and now shows both items on her list
-        row_texts = self.get_table_row_texts()
-        self.assertIn('1: Buy peacock feathers', row_texts)
-        self.assertIn('2: Use peacock feathers to make a fly', row_texts)
+        self.wait_for_row_in_list_table('2: Use peacock feathers to make a fly')
+        self.wait_for_row_in_list_table('1: Buy peacock feathers')
 
         # Alice wants the site to remember he list. She sees that the site
         # has generated a unique URL for her, together with explanatory text
