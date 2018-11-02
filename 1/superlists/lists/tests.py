@@ -98,3 +98,18 @@ class ItemModelTest(TestCase):
         second_saved_item = saved_items[1]
         self.assertEqual(first_saved_item.text, 'The first (ever) list item')
         self.assertEqual(second_saved_item.text, 'Item the second')
+
+
+class ListViewTest(TestCase):
+
+    def test_displays_all_items(self):
+        Item.objects.create(text='item 1: puppies')
+        Item.objects.create(text='item 2: pens')
+
+        response = self.client.get('/lists/the-only-list-in-the-world/')
+
+        # django provides `assertContains`. Like assertIn but handles
+        # the encoding/decoding between response.content bytes and
+        # python strings
+        self.assertContains(response, 'item 1: puppies')
+        self.assertContains(response, 'item 2: pens')
