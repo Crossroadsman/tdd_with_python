@@ -1,15 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from .models import Item
 
 
 def home_page(request):
-    template = 'lists/home.html'
     if request.method == 'POST':
-        new_item_text = request.POST['item_text']
-        Item.objects.create(text=new_item_text)
-
-        context = {'new_item_text': new_item_text,}
-    else:  # GET
-        context = {}
+        Item.objects.create(text=request.POST['item_text'])
+        return redirect('/')
+    # GET
+    template = 'lists/home.html'
+    context = {}
     return render(request, template, context)
