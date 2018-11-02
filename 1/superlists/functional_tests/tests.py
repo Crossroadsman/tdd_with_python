@@ -27,7 +27,7 @@ functional tests confirm the code is doing the right things.
 To enable firefox to run on a headless Ubuntu server we need to:
 - install firefox
 - install xvfb (the X windows virtual framebuffer)
-- Run xvfb in the background
+- Run xvfb in the background (of the session running the tests)
 ```console
 Xvfb :10 -ac &
 ```
@@ -41,7 +41,7 @@ export DISPLAY=:10
 """Constants
    ---------
 """
-MAX_WAIT = 20
+MAX_WAIT = 20  # some values were occasionally expiring when set to 10
 
 
 """Tests
@@ -130,14 +130,29 @@ class NewVisitorTest(LiveServerTestCase):
         self.wait_for_row_in_list_table('2: Use peacock feathers to make a fly')
         self.wait_for_row_in_list_table('1: Buy peacock feathers')
 
-        # Alice wants the site to remember he list. She sees that the site
-        # has generated a unique URL for her, together with explanatory text
-        # to that effect.
+        # Satisfied she goes back to sleep.
+
+    def test_multiple_users_can_start_lists_with_unique_urls(self):
+        # Alice starts a new to-do list
+        self.browser.get(self.live_server_url)
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy peacock feathers')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy peacock feathers')
+
+        # Alice wants the site to remember her list. She sees that:
+        # - the site has generated a url with a logical structure beginning
+        #   with /lists/
+        alice_list_url = self.browser.current_url
+        self.assertRegex(alice_list_url, '/lists/.+')
+        
+        # - the id (after the /lists/) uniquely identifies her list
         self.fail('Finish the test!')
 
+        # has generated a unique URL for her, together with explanatory text
+        # to that effect.
         # She visits the URL: her to-do list is still there.
 
-        # Satisfied she goes back to sleep.
 
 # --------
 
