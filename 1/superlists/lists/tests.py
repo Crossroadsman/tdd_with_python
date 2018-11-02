@@ -24,8 +24,17 @@ class HomePageTest(TestCase):
         self.assertTemplateUsed(response, 'lists/home.html')
 
     def test_home_page_can_save_POST_request(self):
-        """Make sure the home page can make POST requests that the view
-        can handle"""
+        """Make sure the home page can make POST requests that update
+        the database
+        """
+        self.client.post('/', data=self.post_data)
+
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, self.item_text)
+
+    def test_home_page_redirects_after_POST_request(self):
+        """Make sure the home page redirects after a POST"""
 
         # self.client.post takes a `data` argument that contains a
         # dictionary of the form data, where the key is the
@@ -33,6 +42,12 @@ class HomePageTest(TestCase):
         # to supply as a value to that form input.
         response = self.client.post('/', data=self.post_data)
 
+        # Update 20181101: This code path no longer renders a template,
+        # instead it redirects to another view. As such there is now no
+        # response.content.
+        # The following has been left in place for now as it is helpful
+        # for visualising bytesequences vs strings and UTF-8 encodinng
+        #.
         # The HttpResponse object has a `content` attribute which is of
         # type byte sequence (`bytes`)
         # `bytes` has a `decode(encoding="utf-8", errors="strict)` method
@@ -48,10 +63,6 @@ class HomePageTest(TestCase):
         print(response_text)
         print("----- End Python string -----")
         
-        self.assertEqual(Item.objects.count(), 1)
-        new_item = Item.objects.first()
-        self.assertEqual(new_item.text, self.item_text)
-
         # We are following the principle of always redirecting after a POST
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], '/')
