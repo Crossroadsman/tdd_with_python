@@ -50,29 +50,6 @@ class HomePageTest(TestCase):
         self.client.get('/')
         self.assertEqual(Item.objects.count(), 0)
 
-    def test_displays_all_list_items(self):
-        Item.objects.create(text='item 1: puppies')
-        Item.objects.create(text='item 2: pens')
-
-        response = self.client.get('/')
-        # The HttpResponse object has a `content` attribute which is of
-        # type byte sequence (`bytes`)
-        # `bytes` has a `decode(encoding="utf-8", errors="strict)` method
-        # note that content is utf-8 encoded so we can use the defaults
-        # for `decode`
-        response_text = response.content.decode()
-        # The following print statements are just to visually compare
-        # the byte sequence and the python string
-        print("----- Here is what the (utf-8 encoded) byte sequence looks like -----")
-        print(response.content)
-        print("----- End bytestring -----")
-        print("----- Here is what the Python string looks like -----")
-        print(response_text)
-        print("----- End Python string -----")
-
-        self.assertIn('item 1: puppies', response_text)
-        self.assertIn('item 2: pens', response_text)
-
 
 class ItemModelTest(TestCase):
 
@@ -102,14 +79,38 @@ class ItemModelTest(TestCase):
 
 class ListViewTest(TestCase):
 
-    def test_displays_all_items(self):
+    def test_uses_list_template(self):
+        response = self.client.get('lists/the-only-list-in-the-world/')
+        self.assertTemplateUsed(response, 'list.html')
+
+    def test_displays_all_list_items(self):
         Item.objects.create(text='item 1: puppies')
         Item.objects.create(text='item 2: pens')
 
         response = self.client.get('/lists/the-only-list-in-the-world/')
+        # The HttpResponse object has a `content` attribute which is of
+        # type byte sequence (`bytes`)
+        # `bytes` has a `decode(encoding="utf-8", errors="strict)` method
+        # note that content is utf-8 encoded so we can use the defaults
+        # for `decode`
+        response_text = response.content.decode()
+        # The following print statements are just to visually compare
+        # the byte sequence and the python string
+        print("----- Here is what the (utf-8 encoded) byte sequence looks like -----")
+        print(response.content)
+        print("----- End bytestring -----")
+        print("----- Here is what the Python string looks like -----")
+        print(response_text)
+        print("----- End Python string -----")
+
+        #self.assertIn('item 1: puppies', response_text)
+        #self.assertIn('item 2: pens', response_text)
 
         # django provides `assertContains`. Like assertIn but handles
         # the encoding/decoding between response.content bytes and
         # python strings
+        # thus we don't need to manually decode response.content into
+        # response_text. We've left the original decoding and the
+        # old asserts by way of comparison
         self.assertContains(response, 'item 1: puppies')
         self.assertContains(response, 'item 2: pens')
