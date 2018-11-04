@@ -15,7 +15,7 @@ def home_page(request):
 
 def view_list(request):
     items = Item.objects.all()
-    template = 'lists/home.html'
+    template = 'lists/list.html'
     context = {'items': items,}
     return render(request, template, context)
 

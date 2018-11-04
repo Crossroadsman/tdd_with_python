@@ -80,13 +80,13 @@ class ItemModelTest(TestCase):
 class ListViewTest(TestCase):
 
     def test_uses_list_template(self):
-        response = self.client.get('lists/the-only-list-in-the-world/')
-        self.assertTemplateUsed(response, 'list.html')
+        response = self.client.get('/lists/the-only-list-in-the-world/')
+        self.assertTemplateUsed(response, 'lists/list.html')
 
     def test_displays_all_list_items(self):
         Item.objects.create(text='item 1: puppies')
         Item.objects.create(text='item 2: pens')
-
+ 
         response = self.client.get('/lists/the-only-list-in-the-world/')
         # The HttpResponse object has a `content` attribute which is of
         # type byte sequence (`bytes`)
@@ -114,3 +114,4 @@ class ListViewTest(TestCase):
         # old asserts by way of comparison
         self.assertContains(response, 'item 1: puppies')
         self.assertContains(response, 'item 2: pens')
+
