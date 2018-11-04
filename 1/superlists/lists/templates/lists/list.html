@@ -7,20 +7,7 @@
 
   <body>
     <h1>Your To-Do list</h1>
-    {% comment %}
-      This template (home.html) gets used by multiple views. However, only
-      the `home_page` view is set up to do anything with POSTs. Thus we
-      cannot do what we usually do and leave off the action attribute in
-      the form element because if we do, then when this template is loaded
-      by `view_list` and the user makes a form submission, the POST will
-      be sent back to `view_list` which won't do anything with the POST
-      data.
-      The simplest solution then is to do what we have done here and 
-      specify the url for POSTing which will send all POST submissions 
-      back to `home_page` which can then do all the work associated with
-      responding to the form submission.
-    {% endcomment %}
-    <form method="POST" action="/">
+    <form method="POST">
       {% csrf_token %}
       <input id="id_new_item" name="item_text" placeholder="Enter a to-do item" />
     </form>
