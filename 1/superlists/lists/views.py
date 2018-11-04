@@ -8,9 +8,8 @@ def home_page(request):
         Item.objects.create(text=request.POST['item_text'])
         return redirect('/lists/the-only-list-in-the-world/')
     # GET
-    items = Item.objects.all()
     template = 'lists/home.html'
-    context = {'items': items,}
+    context = {}
     return render(request, template, context)
 
 def view_list(request):
