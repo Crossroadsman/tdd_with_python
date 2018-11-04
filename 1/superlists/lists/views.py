@@ -18,3 +18,7 @@ def view_list(request):
     context = {'items': items,}
     return render(request, template, context)
 
+def new_list(request):
+    """Create a new list"""
+    Item.objects.create(text=request.POST['item_text'])
+    return redirect('/lists/the-only-list-in-the-world/')

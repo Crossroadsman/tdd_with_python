@@ -6,9 +6,6 @@ from lists.views import home_page
 
 
 class HomePageTest(TestCase):
-    def setUp(self):
-        self.item_text = 'A new list item'
-        self.post_data = {'item_text': self.item_text}
 
     def test_GET_uses_home_template(self):
         """Make sure that GET requests use the correct template"""
@@ -22,29 +19,6 @@ class HomePageTest(TestCase):
         # template gets loaded (the functional test will still prove that
         # the right content is shown to the user).
         self.assertTemplateUsed(response, 'lists/home.html')
-
-    def test_can_save_POST_request(self):
-        """Make sure the home page can make POST requests that update
-        the database
-        """
-        self.client.post('/', data=self.post_data)
-
-        self.assertEqual(Item.objects.count(), 1)
-        new_item = Item.objects.first()
-        self.assertEqual(new_item.text, self.item_text)
-
-    def test_redirects_after_POST_request(self):
-        """Make sure the home page redirects after a POST"""
-
-        # self.client.post takes a `data` argument that contains a
-        # dictionary of the form data, where the key is the
-        # form's `name` attribute and the value is whatever we want
-        # to supply as a value to that form input.
-        response = self.client.post('/', data=self.post_data)
-        
-        # We are following the principle of always redirecting after a POST
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/lists/the-only-list-in-the-world/')
 
     def test_GET_requests_do_not_save_to_db(self):
         self.client.get('/')
@@ -114,4 +88,37 @@ class ListViewTest(TestCase):
         # old asserts by way of comparison
         self.assertContains(response, 'item 1: puppies')
         self.assertContains(response, 'item 2: pens')
+
+
+class NewListTest(TestCase):
+
+    def setUp(self):
+        self.item_text = 'A new list item'
+        self.post_data = {'item_text': self.item_text}
+        self.post_url = '/lists/new'
+
+    def test_can_save_POST_request(self):
+        """Make sure the home page can make POST requests that update
+        the database
+        """
+        self.client.post(self.post_url, data=self.post_data)
+
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, self.item_text)
+
+    def test_redirects_after_POST_request(self):
+        """Make sure the home page redirects after a POST"""
+
+        # self.client.post takes a `data` argument that contains a
+        # dictionary of the form data, where the key is the
+        # form's `name` attribute and the value is whatever we want
+        # to supply as a value to that form input.
+        response = self.client.post(self.post_url, data=self.post_data)
+        
+        # We are following the principle of always redirecting after a POST
+        # instead of doing two assertEquals, to check that the response.
+        # status_code is 302 and the redirect url is /lists/the-only-list-
+        # in-the-world/ we can use assertRedirects:
+        self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
 
