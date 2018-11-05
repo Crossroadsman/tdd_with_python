@@ -27,7 +27,7 @@ functional tests confirm the code is doing the right things.
 To enable firefox to run on a headless Ubuntu server we need to:
 - install firefox
 - install xvfb (the X windows virtual framebuffer)
-- Run xvfb in the background
+- Run xvfb in the background (of the session running the tests)
 ```console
 Xvfb :10 -ac &
 ```
@@ -41,7 +41,7 @@ export DISPLAY=:10
 """Constants
    ---------
 """
-MAX_WAIT = 20
+MAX_WAIT = 10  # some values were occasionally expiring when set to 10
 
 
 """Tests
@@ -60,6 +60,21 @@ class NewVisitorTest(LiveServerTestCase):
     # helper methods
     # --------------
     def get_table_row_texts(self):
+
+        # we were getting selenium StaleElementException with the sleep
+        # in the original location. This might be because on the first
+        # iteration of the loop, the page is still loading (longer now
+        # because of redirect after POST). Thus between id_list_table
+        # being assigned to table and querying table for `tr` elements
+        # the trs had gone stale.
+        # Thus we put a sleep before we assign to table so that when
+        # we do get `id_list_table` it is from the fully loaded page
+        # and so not stale when we go back to look for `tr` elements
+        # This has now worked at least once since moving the sleep
+        # but Internet weather might cause a failure in the future if
+        # load time is particularly slow. At that time we could consider
+        # raising the sleep time.
+        time.sleep(1) # give page a moment to load
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
         return [row.text for row in rows]
@@ -77,7 +92,7 @@ class NewVisitorTest(LiveServerTestCase):
                 # if the page hasn't loaded
                 if time.time() - start_time > MAX_WAIT:
                     raise e
-                time.sleep(0.5)
+                # time.sleep(0.5)  # move sleep into get_table_row_texts
             else:
                 return
 
@@ -109,7 +124,7 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox = self.browser.find_element_by_id('id_new_item')
         self.assertEqual(
             inputbox.get_attribute('placeholder'),
-            'Enter a to-do item'
+            'Enter your first to-do item'
         )
 
         # She types "Buy peacock feathers" into a text box
@@ -130,14 +145,58 @@ class NewVisitorTest(LiveServerTestCase):
         self.wait_for_row_in_list_table('2: Use peacock feathers to make a fly')
         self.wait_for_row_in_list_table('1: Buy peacock feathers')
 
-        # Alice wants the site to remember he list. She sees that the site
-        # has generated a unique URL for her, together with explanatory text
-        # to that effect.
+        # Satisfied she goes back to sleep.
+
+    def test_multiple_users_can_start_lists_with_unique_urls(self):
+        # Alice starts a new to-do list
+        self.browser.get(self.live_server_url)
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy peacock feathers')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy peacock feathers')
+
+        # Alice wants the site to remember her list. She sees that:
+        # - the site has generated a url with a logical structure beginning
+        #   with /lists/
+        alice_list_url = self.browser.current_url
+        self.assertRegex(alice_list_url, '/lists/.+')
+
+        # In the meantime, Bob accesses the site.
+        # (We will use a new browser session to ensure that no information
+        # from Alice's session is coming through, e.g., from cookies)
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
+
+        # Bob visits the home page, there is no sign of Alice's list
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertNotIn('make a fly', page_text)
+
+        # Bob starts a new list by entering a new item. His is less
+        # interesting than Alice
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy milk')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy milk')
+
+        # Bob gets his own unique URL of the same form
+        bob_list_url = self.browser.current_url
+        self.assertRegex(bob_list_url, '/lists/.+')
+        self.assertNotEqual(bob_list_url, alice_list_url)
+
+        # Still no trace of Alice's list
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertIn('Buy milk', page_text)
+        
+        # - the id (after the /lists/) uniquely identifies her list
         self.fail('Finish the test!')
 
+        # has generated a unique URL for her, together with explanatory text
+        # to that effect.
         # She visits the URL: her to-do list is still there.
 
-        # Satisfied she goes back to sleep.
 
 # --------
 
