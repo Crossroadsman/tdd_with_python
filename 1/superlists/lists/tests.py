@@ -64,15 +64,19 @@ class ListAndItemModelTest(TestCase):
 class ListViewTest(TestCase):
 
     def test_uses_list_template(self):
-        response = self.client.get('/lists/the-only-list-in-the-world/')
+        list_ = List.objects.create()
+        response = self.client.get(f'/lists/{list_.id}/')
         self.assertTemplateUsed(response, 'lists/list.html')
 
-    def test_displays_all_list_items(self):
-        list_ = List.objects.create()
-        Item.objects.create(text='item 1: puppies', list=list_)
-        Item.objects.create(text='item 2: pens', list=list_)
+    def test_displays_only_applicable_list_items(self):
+        correct_list = List.objects.create()
+        Item.objects.create(text='item 1: puppies', list=correct_list)
+        Item.objects.create(text='item 2: pens', list=correct_list)
+        other_list = List.objects.create()
+        Item.objects.create(text='other item 1', list=other_list)
+        Item.objects.create(text='other item 2', list=other_list)
  
-        response = self.client.get('/lists/the-only-list-in-the-world/')
+        response = self.client.get(f'/lists/{correct_list.id}/')
         # The HttpResponse object has a `content` attribute which is of
         # type byte sequence (`bytes`)
         # `bytes` has a `decode(encoding="utf-8", errors="strict)` method
@@ -99,6 +103,17 @@ class ListViewTest(TestCase):
         # old asserts by way of comparison
         self.assertContains(response, 'item 1: puppies')
         self.assertContains(response, 'item 2: pens')
+        self.assertNotContains(response, 'other item 1')
+        self.assertNotContains(response, 'other item 2')
+
+    def test_passes_correct_list_to_template(self):
+        other_list = List.objects.create()
+        correct_list = List.objects.create()
+        response = self.client.get(f'/lists/{correct_list.id}/')
+        # `response.context` represents the context we're going to pass
+        # into the render function (the DJango Test Client puts it on the
+        # response object for us, to help with testing)
+        self.assertEqual(response.context['list'], correct_list)
 
 
 class NewListTest(TestCase):
@@ -129,7 +144,39 @@ class NewListTest(TestCase):
         
         # We are following the principle of always redirecting after a POST
         # instead of doing two assertEquals, to check that the response.
-        # status_code is 302 and the redirect url is /lists/the-only-list-
-        # in-the-world/ we can use assertRedirects:
-        self.assertRedirects(response, '/lists/the-only-list-in-the-world/')
+        # status_code is 302 and the redirect url is /lists/<list_id>/
+        # we can use assertRedirects:
+        new_list = List.objects.first()
+        self.assertRedirects(response, f'/lists/{new_list.id}/')
 
+
+class NewItemTest(TestCase):
+
+    def setUp(self):
+        self.other_list = List.objects.create()
+        self.correct_list = List.objects.create()
+        self.add_item_url = f'/lists/{self.correct_list.id}/add_item'
+        self.post_data = {'item_text': 'A new item for an existing list'}
+
+    def test_can_save_a_POST_request_to_an_existing_list(self):
+        """Make sure that existing lists can get new items"""
+        self.client.post(
+            self.add_item_url,
+            data=self.post_data
+        )
+
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, 'A new item for an existing list')
+        self.assertEqual(new_item.list, self.correct_list)
+
+    def test_redirects_to_list_view(self):
+        """Make sure that after POSTing to add_item, we redirect to
+        list_view
+        """
+        response = self.client.post(
+            self.add_item_url,
+            data=self.post_data
+        )
+
+        self.assertRedirects(response, f'/lists/{self.correct_list.id}/')

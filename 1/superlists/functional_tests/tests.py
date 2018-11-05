@@ -182,7 +182,7 @@ class NewVisitorTest(LiveServerTestCase):
 
         # Bob gets his own unique URL of the same form
         bob_list_url = self.browser.current_url
-        self.assertRegex(bob_list_url, '/list/.+')
+        self.assertRegex(bob_list_url, '/lists/.+')
         self.assertNotEqual(bob_list_url, alice_list_url)
 
         # Still no trace of Alice's list
