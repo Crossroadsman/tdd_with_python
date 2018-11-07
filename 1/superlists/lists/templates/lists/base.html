@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
   <head>
@@ -7,9 +8,9 @@
     <!-- end Bootstrap-required meta tags -->
     <title>{% block title %}{% endblock %}</title>
     <!-- Bootstrap CSS -->
-    <link href="/static/lists/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'lists/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
     <!-- end Bootstrap CSS -->
-    <link href="/static/lists/css/base.css" rel="stylesheet">
+    <link href="{% static 'lists/css/base.css' %}" rel="stylesheet">
   </head>
 
   <body>
