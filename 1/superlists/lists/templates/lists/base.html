@@ -7,8 +7,9 @@
     <!-- end Bootstrap-required meta tags -->
     <title>{% block title %}{% endblock %}</title>
     <!-- Bootstrap CSS -->
-    <link href="/static/lists/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/lists/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <!-- end Bootstrap CSS -->
+    <link href="/static/lists/css/base.css" rel="stylesheet">
   </head>
 
   <body>
@@ -36,14 +37,14 @@
                      class="form-control input-lg" />
             </form>
           </div><!-- text-center -->
-        </div><!-- col-md-6 col-md-offset-3 -->
+        </div><!-- col-md-6 offset-md-3 -->
       </div><!-- row -->
 
       <div class="row">
-        <div class="col-md-6 col-md-offset-3">
+        <div class="col-md-6 offset-md-3">
           {% block table %}
           {% endblock table %}
-        </div><!-- col-md-6 col-md-offset-3 -->
+        </div><!-- col-md-6 offset-md-3 -->
       </div><!-- row -->
     </div><!-- container -->
   </body>
