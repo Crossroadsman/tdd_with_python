@@ -1,15 +1,22 @@
 import time
 
-"""LiveServerTestCase
+"""django.test.LiveServerTestCase
 https://docs.djangoproject.com/en/2.1/topics/testing/tools/#django.test.LiveServerTestCase
 - launches a live Django server in the background on setUp and shuts it
   down on tearDown (thus each test gets a fresh server)
 - It provides certain APIs to enable communication with the server, e.g.,
   live_server_url to get the server's url.
 - This allows the use of functional tests with, e.g., Selenium to execute
-  a series of functional tests inside a browswer.
+  a series of functional tests inside a browser.
+
+django.contrib.staticfiles.testing.StaticLiveServerTestCase
+https://docs.djangoproject.com/en/2.1/howto/static-files/#staticfiles-testing-support
+- This is a subclass of Django's LiveServerTestCase
+- It adds the ability to serve assets during development in much the same
+  way as the Django dev server can when DEBUG=True
+- This lets us test static assets without needing to run `collectstatic`
 """
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -56,7 +63,7 @@ MAX_WAIT = 10  # some values were occasionally expiring when set to 10
 """Tests
    -----
 """
-class NewVisitorTest(LiveServerTestCase):
+class NewVisitorTest(StaticLiveServerTestCase):
 
     # setUp and tearDown
     # ------------------
