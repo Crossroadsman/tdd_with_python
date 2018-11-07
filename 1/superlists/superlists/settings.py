@@ -13,6 +13,16 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+# __file__ is a reference to this file: `settings.py`
+# os.path.abspath(__file__) is the full path to __file__ using the os's
+#                           own terminology
+# os.path.dirname(os.path.abspath(__file__)) is the full path to the
+#                           directory that holds `abspath(...)`
+# thus the outer os.path.dirname is the full path to the directory
+# that holds the inner directory.
+# All of this is a long-winded way to get the OS's specific expression
+# of the directory above the directory holding settings.py, i.e., the
+# root directory of the project.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -144,7 +154,8 @@ Simply put, the three locations have the following characteristics:
                      STATIC_ROOT is not even in the Django project folder
                      hierarchy (they use `/var/www/example.com/static` in
                      their example).
-                     For now, we'll leave this blank and we'll choose a 
-                     directory once we get to deployment.
+                     For now, we'll use a directory called 'static_root'
+                     in the project root.
 '''
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
