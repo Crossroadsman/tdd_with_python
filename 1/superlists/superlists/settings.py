@@ -13,6 +13,16 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+# __file__ is a reference to this file: `settings.py`
+# os.path.abspath(__file__) is the full path to __file__ using the os's
+#                           own terminology
+# os.path.dirname(os.path.abspath(__file__)) is the full path to the
+#                           directory that holds `abspath(...)`
+# thus the outer os.path.dirname is the full path to the directory
+# that holds the inner directory.
+# All of this is a long-winded way to get the OS's specific expression
+# of the directory above the directory holding settings.py, i.e., the
+# root directory of the project.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -25,7 +35,9 @@ SECRET_KEY = 'jk9ep9d0eau6j31(6k-7$1#)w&7ud6i(^ntuwf2-er80phcw_g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# The list of host/domain names that this site can serve
+# (To protect against HTTP Host header attacks)
+ALLOWED_HOSTS = ['localhost', '.koumparossoftware.com']
 
 
 # Application definition
@@ -37,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'lists',
 ]
 
 MIDDLEWARE = [
@@ -116,5 +129,33 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
-
+'''ASK 20181106
+Note that there are three constants to handle static file locations
+(see the Django docs for more details, and also the following S.O. entry:
+https://stackoverflow.com/questions/24022558/differences-between-staticfiles    -dir-static-root-and-media-root
+).
+Simply put, the three locations have the following characteristics:
+`STATIC_URL`       - this describes the URL prefix for referring to those
+                     static files that will be located in `STATIC_ROOT`.
+                     Examples:
+                     "/static/" or
+                     "http://static.thissite.com/"
+`STATICFILES_DIRS` - this is a list of other (app_name/static is provided
+                     by default) folders where static files can be found
+                     (typically project-level files)
+`STATIC_ROOT`      - this is the folder where static files should be
+                     served once the project is deployed.
+                     The `collectstatic` command copies files from all
+                     other registered static folders into this folder
+                     to provide a single location from which something like
+                     Apache or NGINX can serve the files.
+                     NOTE: this cannot be the same folder as one in the
+                     STATICFILES_DIRS list. In the Django documentation
+                     STATIC_ROOT is not even in the Django project folder
+                     hierarchy (they use `/var/www/example.com/static` in
+                     their example).
+                     For now, we'll use a directory called 'static_root'
+                     in the project root.
+'''
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')

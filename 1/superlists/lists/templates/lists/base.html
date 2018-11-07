@@ -1,0 +1,52 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!-- begin Bootstrap-required meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- end Bootstrap-required meta tags -->
+    <title>{% block title %}{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="{% static 'lists/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- end Bootstrap CSS -->
+    <link href="{% static 'lists/css/base.css' %}" rel="stylesheet">
+  </head>
+
+  <body>
+    <!-- `containers` are the most basic layout element in bootstrap and
+         required when using the default grid system. -->
+    <div class="container">
+      
+      <!-- `row`s are wrappers for columns -->
+      <div class="row">
+        <!-- `columns` are the only valid immediate children of rows.
+             within the grid system, content must be placed within columns.
+             If no width specified, they will automatically be equal-width
+             The size-class refers to the minimum breakpoint size for them
+             to be rendered side-by-side.
+             The number specifies how many of the max 12 columns should be
+             taken up by this column -->
+        <div class="col-md-6 offset-md-3 jumbotron">
+          <div class="text-center">
+            <h1>{% block header_text %}{% endblock %}</h1>
+            <form method="POST" {% block form_action %}{% endblock %}>
+              {% csrf_token %}
+              <input id="id_new_item" 
+                     name="item_text" 
+                     placeholder="Enter a to-do item"
+                     class="form-control input-lg" />
+            </form>
+          </div><!-- text-center -->
+        </div><!-- col-md-6 offset-md-3 -->
+      </div><!-- row -->
+
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+          {% block table %}
+          {% endblock table %}
+        </div><!-- col-md-6 offset-md-3 -->
+      </div><!-- row -->
+    </div><!-- container -->
+  </body>
+</html>
