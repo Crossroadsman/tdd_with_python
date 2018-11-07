@@ -144,7 +144,8 @@ Simply put, the three locations have the following characteristics:
                      STATIC_ROOT is not even in the Django project folder
                      hierarchy (they use `/var/www/example.com/static` in
                      their example).
-                     For now, we'll leave this blank and we'll choose a 
-                     directory once we get to deployment.
+                     For now, we'll use a directory called 'static_root'
+                     in the project root.
 '''
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
