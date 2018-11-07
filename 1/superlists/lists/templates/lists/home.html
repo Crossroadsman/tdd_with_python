@@ -1,16 +1,9 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>To-Do lists: Start a New List</title>
-  </head>
+{% extends 'lists/base.html' %}
 
-  <body>
-    <h1>Start a To-Do List</h1>
-    {# we need to specify action because we POST to a different url #}
-    <form method="POST" action="/lists/new">
-      {% csrf_token %}
-      <input id="id_new_item" name="item_text" placeholder="Enter your first to-do item" />
-    </form>
-  </body>
-</html>
+{% block title %}To-Do Lists: Start a New List{% endblock %}
+{% block header_text %}To-Do Lists: Start a New List{% endblock %}
+
+{% block form_action %}
+  action="/lists/new"
+{% endblock %}
+

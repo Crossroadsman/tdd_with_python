@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+  </head>
+
+  <body>
+    <h1>{% block header_text %}{% endblock %}</h1>
+    {# we will need to specify an action if we POST to a different url #}
+    <form method="POST" {% block form_action %}{% endblock %}>
+      {% csrf_token %}
+      <input id="id_new_item" name="item_text" placeholder="Enter a to-do item" />
+    </form>
+    {% block table %}
+    {% endblock table %}
+  </body>
+</html>
