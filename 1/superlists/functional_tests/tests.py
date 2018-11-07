@@ -1,6 +1,22 @@
 import time
 
-from django.test import LiveServerTestCase
+"""django.test.LiveServerTestCase
+https://docs.djangoproject.com/en/2.1/topics/testing/tools/#django.test.LiveServerTestCase
+- launches a live Django server in the background on setUp and shuts it
+  down on tearDown (thus each test gets a fresh server)
+- It provides certain APIs to enable communication with the server, e.g.,
+  live_server_url to get the server's url.
+- This allows the use of functional tests with, e.g., Selenium to execute
+  a series of functional tests inside a browser.
+
+django.contrib.staticfiles.testing.StaticLiveServerTestCase
+https://docs.djangoproject.com/en/2.1/howto/static-files/#staticfiles-testing-support
+- This is a subclass of Django's LiveServerTestCase
+- It adds the ability to serve assets during development in much the same
+  way as the Django dev server can when DEBUG=True
+- This lets us test static assets without needing to run `collectstatic`
+"""
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -47,7 +63,7 @@ MAX_WAIT = 10  # some values were occasionally expiring when set to 10
 """Tests
    -----
 """
-class NewVisitorTest(LiveServerTestCase):
+class NewVisitorTest(StaticLiveServerTestCase):
 
     # setUp and tearDown
     # ------------------
@@ -100,7 +116,10 @@ class NewVisitorTest(LiveServerTestCase):
     # Tests
     # -----
     def test_can_start_a_list_and_retrieve_it_later(self):
-        """TODO 20181025: This is a huge test that tests a whole bunch of 
+        """Test basic functionality: making a list then retrieving it
+        later
+ 
+        TODO 20181025: This is a huge test that tests a whole bunch of 
         things. Is this typical for functional tests?
 
         A 20181101: It seems necessary for a functional (=integration)
@@ -124,7 +143,7 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox = self.browser.find_element_by_id('id_new_item')
         self.assertEqual(
             inputbox.get_attribute('placeholder'),
-            'Enter your first to-do item'
+            'Enter a to-do item'
         )
 
         # She types "Buy peacock feathers" into a text box
@@ -196,6 +215,34 @@ class NewVisitorTest(LiveServerTestCase):
         # has generated a unique URL for her, together with explanatory text
         # to that effect.
         # She visits the URL: her to-do list is still there.
+
+    def test_layout_and_styling(self):
+        """Ensure that critical elements of layout are rendered"""
+        # Alice goes to the home page
+        self.browser.get(self.live_server_url)
+        self.browser.set_window_size(1024, 768)
+
+        # She notices the input box is nicely centred
+        # (we're checking that the middle of the input box is approximately
+        # in the centre of the window (of specified size))
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x'] + inputbox.size['width'] / 2,
+            512,
+            delta=10  # 10 is good delta to cover weirdness like scrollbars
+        )
+
+        # She starts a new list and sees the input is centred there, too
+        inputbox.send_keys('testing')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: testing')
+
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x'] + inputbox.size['width'] / 2,
+            512,
+            delta=10
+        )
 
 
 # --------
