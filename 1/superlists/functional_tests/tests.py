@@ -1,6 +1,8 @@
+import os
 import time
 
 """django.test.LiveServerTestCase
+               ------------------
 https://docs.djangoproject.com/en/2.1/topics/testing/tools/#django.test.LiveServerTestCase
 - launches a live Django server in the background on setUp and shuts it
   down on tearDown (thus each test gets a fresh server)
@@ -10,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/topics/testing/tools/#django.test.LiveServ
   a series of functional tests inside a browser.
 
 django.contrib.staticfiles.testing.StaticLiveServerTestCase
+                                   ------------------------
 https://docs.djangoproject.com/en/2.1/howto/static-files/#staticfiles-testing-support
 - This is a subclass of Django's LiveServerTestCase
 - It adds the ability to serve assets during development in much the same
@@ -69,6 +72,12 @@ class NewVisitorTest(StaticLiveServerTestCase):
     # ------------------
     def setUp(self):
         self.browser = webdriver.Firefox()
+        # the following lets us choose (by setting an environment variable)
+        # whether we want a LiveServerTestCase-provided server instance or
+        # if we want to use a real server
+        staging_server = os.environ.get('SUPERLISTS_STAGING_SERVER')
+        if staging_server:
+            self.live_server_url = 'http://' + staging_server
 
     def tearDown(self):
         self.browser.quit()
@@ -210,11 +219,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.assertIn('Buy milk', page_text)
         
         # - the id (after the /lists/) uniquely identifies her list
-        self.fail('Finish the test!')
-
-        # has generated a unique URL for her, together with explanatory text
-        # to that effect.
-        # She visits the URL: her to-do list is still there.
+        # (the self.assertNotEqual(bob_list_url, alice_list_url) is as
+        # close to a test of uniqueness as is feasible right now)
 
     def test_layout_and_styling(self):
         """Ensure that critical elements of layout are rendered"""
