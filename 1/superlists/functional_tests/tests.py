@@ -74,7 +74,7 @@ To enable firefox to run on a headless Ubuntu server we need to:
 """Constants
    ---------
 """
-MAX_WAIT = 10  # some values were occasionally expiring when set to 10
+MAX_WAIT = 10  # can change if tests frequently timeout
 
 
 """Tests
