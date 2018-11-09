@@ -5,7 +5,7 @@ from fabric.api import cd, env, local, run
 
 
 REPO_URL = 'https://github.com/Crossroadsman/tdd_with_python.git'
-VALID_DEPLOY_BRANCHES = ('develop', 'master')
+VALID_DEPLOY_BRANCHES = ('develop', 'master',)
 
 def deploy():
 
@@ -17,11 +17,11 @@ def deploy():
 
     # `run` means 'run this shell command on the server'
     # `-p` creates directories recursively, only if needed
-    run(f'mkdir -p {site_folder}')
+    run(f'mkdir -p {site_directory}')
 
     # `cd` is a fabric context manager that means:
     # "run all the following statements inside the specified working dir
-    with cd(site_folder):
+    with cd(site_directory):
         _get_latest_source()
         _update_venv()
         _create_or_update_dotenv()
@@ -40,11 +40,11 @@ def _get_latest_source():
         sys.exit(f'{current_branch} is not a valid deployment branch')
 
     if exists('.git'):
-        run(f'git checkout {current_branch}'
+        run(f'git checkout {current_branch}')
         run('git fetch')
 
     else:
-        run(f'git clone --branch current_branch {REPO_URL} .')
+        run(f'git clone --branch {current_branch} {REPO_URL} .')
 
     current_commit = local("git log -n 1 --format=%H", capture=True)
     run(f'git reset --hard {current_commit}')
