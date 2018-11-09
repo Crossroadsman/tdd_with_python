@@ -1,10 +1,11 @@
+import sys
 import random
 from fabric.contrib.files import append, exists
 from fabric.api import cd, env, local, run
 
 
 REPO_URL = 'https://github.com/Crossroadsman/tdd_with_python.git'
-
+VALID_DEPLOY_BRANCHES = ('develop', 'master')
 
 def deploy():
 
@@ -29,22 +30,22 @@ def deploy():
 
 
 def _get_latest_source():
-    if exists('.git'):
-        run('git fetch')  # TODO will need to customise this to make sure we
-                          # get the right branch.
-    else:
-        run(f'git clone {REPO_URL} .') # TODO ditto about ensuring branch
 
     # `local` executes a command on the local machine.
     # `capture=True` means that the function will return the output from
     # the command
-    #
-    # (TODO We will need to customise the following line because it assumes
-    # that our local will be on the same branch as our deploy target and
-    # we will be wanting the same commit on remote as we have checked out
-    # on local. Perhaps it will turn out that the only feasible way to use
-    # this script is for both local and remote to be using the same commit
-    # on the same branch)
+    current_branch = local('git branch | grep -E "\* "', capture=True)
+    current_branch = current_branch.split()[1]
+    if current_branch not in VALID_DEPLOY_BRANCHES:
+        sys.exit(f'{current_branch} is not a valid deployment branch')
+
+    if exists('.git'):
+        run(f'git checkout {current_branch}'
+        run('git fetch')
+
+    else:
+        run(f'git clone --branch current_branch {REPO_URL} .')
+
     current_commit = local("git log -n 1 --format=%H", capture=True)
     run(f'git reset --hard {current_commit}')
 
