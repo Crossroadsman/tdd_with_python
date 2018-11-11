@@ -6,10 +6,12 @@ Required Packages
 
 - nginx
 - Python (>=3.6)
-- Venv + Pip
+- Venv (python3-venv)
+- Pip (?) (venv will install pip in the venv, need to determine if we need
+           it globally)
 - Git
-- Django (>=2.0)
-- Gunicorn
+- (venv) Django (>=2.0)
+- (venv) Gunicorn
 
 
 Nginx Virtual Host Config
