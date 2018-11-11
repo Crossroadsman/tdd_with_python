@@ -3,6 +3,10 @@ import random
 from fabric.contrib.files import append, exists
 from fabric.api import cd, env, local, run
 
+"""Usage:
+Execute the script by typing:
+$ fab deploy:host=<username>@<url>
+"""
 
 REPO_URL = 'https://github.com/Crossroadsman/tdd_with_python.git'
 VALID_DEPLOY_BRANCHES = ('develop', 'master',)
