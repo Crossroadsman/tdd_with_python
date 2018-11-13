@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 
 from lists.models import Item, List
 
@@ -38,3 +39,18 @@ class ListAndItemModelsTest(TestCase):
         self.assertEqual(second_saved_item.text, 'Item the second')
         self.assertEqual(second_saved_item.list, list_)
 
+    def test_cannot_save_empty_list_items(self):
+        test_list = List.objects.create()
+        item = Item(list=test_list, text='')
+        with self.assertRaises(ValidationError):
+            # Django's validation on save behaviour is a little counter-
+            # intuitive. Because different DB backends support different
+            # levels of constraints, Django wil not try to enforce a 
+            # constraint that isn't supported by the DB. In this case
+            # SQLite doesn't support a constraint equivalent to
+            # `blank=False` (the default for TextField objects)
+            # so Django will silently ignore it on save.
+            # We can get aroud this by using the manual full validation
+            # method `Model.full_clean()`
+            item.save()
+            item.full_clean()
