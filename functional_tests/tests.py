@@ -1,5 +1,6 @@
 import os
 import time
+from unittest import skip
 
 """django.test.LiveServerTestCase
                ------------------
@@ -264,6 +265,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
             delta=10
         )
 
+    @skip  # we're not ready to run this test yet.
     def test_cannot_add_empty_list_items(self):
 
         # Alice goes to the home page and accidentally tries to submit an
