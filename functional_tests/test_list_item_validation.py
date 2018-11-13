@@ -40,7 +40,6 @@ To enable firefox to run on a headless Ubuntu server we need to:
 """
 class ItemValidationTest(FunctionalTest):
 
-    @skip  # we're not ready to run this test yet.
     def test_cannot_add_empty_list_items(self):
 
         # Alice goes to the home page and accidentally tries to submit an
