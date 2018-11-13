@@ -120,17 +120,34 @@ class FunctionalTest(StaticLiveServerTestCase):
     def wait_for_row_in_list_table(self, row_text):
         start_time = time.time()
         while True:
-            row_texts = self.get_table_row_texts()
             try:
-                self.assertIn(row_text, row_texts)
-            except (AssertionError, WebDriverException) as e:
-                # We need both types of error/exception:
-                # AssertionError will fire if the table exists but the
-                # row isn't in there yet; WebDriverException will fire
-                # if the page hasn't loaded
+                row_texts = self.get_table_row_texts()
+            # WebDriverException will fire if the page hasn't loaded
+            except WebDriverException as e:
                 if time.time() - start_time > MAX_WAIT:
                     raise e
-                # time.sleep(0.5)  # move sleep into get_table_row_texts
             else:
-                return
+                try:
+                    self.assertIn(row_text, row_texts)
+                # AssertionError will fire if the table exists but the
+                # row isn't present (yet).
+                except AssertionError as e:
+                    if time.time() - start_time > MAX_WAIT:
+                        raise e
+                else:
+                    return
+
+    def wait_for(self, fn):
+        start_time = time.time()
+        while True:
+            try:
+                return fn()
+            # WebDriverException will fire if the page hasn't reloaded
+            # AssertionError will fire if the page has started to load
+            # but hasn't yet loaded the specified value, or if the
+            # page has fully loaded but the specified value doesn't exist
+            except (AssertionError, WebDriverException) as e:
+                if time.time() - start_time > MAX_WAIT:
+                    raise e
+                time.sleep(0.5)
 
