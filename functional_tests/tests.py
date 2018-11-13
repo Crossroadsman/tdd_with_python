@@ -264,6 +264,24 @@ class NewVisitorTest(StaticLiveServerTestCase):
             delta=10
         )
 
+    def test_cannot_add_empty_list_items(self):
+
+        # Alice goes to the home page and accidentally tries to submit an
+        # empty list item. She hits Enter on the empty input box.
+        self.fail('write me!')
+
+        # The home page responds with an error message saying that list
+        # items cannot be blank.
+
+        # She tries again with some text for the item, which now works.
+
+        # Then she forgets the earlier admonition and again tries to submit
+        # an empty list item.
+
+        # She receives a similar warning on the list page.
+
+        # She corrects it by filling some text in.
+
 
 # --------
 
