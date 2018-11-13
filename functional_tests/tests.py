@@ -78,10 +78,10 @@ To enable firefox to run on a headless Ubuntu server we need to:
 MAX_WAIT = 10  # can change if tests frequently timeout
 
 
-"""Tests
-   -----
+"""Base Test Class
+   ---------------
 """
-class NewVisitorTest(StaticLiveServerTestCase):
+class FunctionalTest(StaticLiveServerTestCase):
 
     # setUp and tearDown
     # ------------------
@@ -137,8 +137,11 @@ class NewVisitorTest(StaticLiveServerTestCase):
                 return
 
 
-    # Tests
-    # -----
+"""Tests
+   -----
+"""
+class NewVisitorTest(FunctionalTest):
+
     def test_can_start_a_list_and_retrieve_it_later(self):
         """Test basic functionality: making a list then retrieving it
         later
@@ -237,6 +240,9 @@ class NewVisitorTest(StaticLiveServerTestCase):
         # (the self.assertNotEqual(bob_list_url, alice_list_url) is as
         # close to a test of uniqueness as is feasible right now)
 
+
+class LayoutAndStylingTest(FunctionalTest):
+
     def test_layout_and_styling(self):
         """Ensure that critical elements of layout are rendered"""
         # Alice goes to the home page
@@ -264,6 +270,9 @@ class NewVisitorTest(StaticLiveServerTestCase):
             512,
             delta=10
         )
+
+
+class ItemValidationTest(FunctionalTest):
 
     @skip  # we're not ready to run this test yet.
     def test_cannot_add_empty_list_items(self):
