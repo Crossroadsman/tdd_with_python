@@ -1,8 +1,6 @@
-from django.urls import resolve
 from django.test import TestCase
 
 from lists.models import Item, List
-from lists.views import home_page
 
 
 class HomePageTest(TestCase):
@@ -23,42 +21,6 @@ class HomePageTest(TestCase):
     def test_GET_requests_do_not_save_to_db(self):
         self.client.get('/')
         self.assertEqual(Item.objects.count(), 0)
-
-
-class ListAndItemModelTest(TestCase):
-
-    def test_saved_items_can_be_retrieved(self):
-        """Ensure saaved items are persisted and can be retrieved.
-
-        This test hits the database and thus is not a real unit test.
-        It should more properly be described as an integration test.
-        We will return to this later.
-        """
-        list_ = List()
-        list_.save()
-
-        first_item = Item()
-        first_item.text = 'The first (ever) list item'
-        first_item.list = list_
-        first_item.save()
-
-        second_item = Item()
-        second_item.text = 'Item the second'
-        second_item.list = list_
-        second_item.save()
-
-        saved_list = List.objects.first()
-        self.assertEqual(saved_list, list_)
-
-        saved_items = Item.objects.all()
-        self.assertEqual(saved_items.count(), 2)
-
-        first_saved_item = saved_items[0]
-        second_saved_item = saved_items[1]
-        self.assertEqual(first_saved_item.text, 'The first (ever) list item')
-        self.assertEqual(first_saved_item.list, list_)
-        self.assertEqual(second_saved_item.text, 'Item the second')
-        self.assertEqual(second_saved_item.list, list_)
 
 
 class ListViewTest(TestCase):
@@ -180,3 +142,4 @@ class NewItemTest(TestCase):
         )
 
         self.assertRedirects(response, f'/lists/{self.correct_list.id}/')
+
