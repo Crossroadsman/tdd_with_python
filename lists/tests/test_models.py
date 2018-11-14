@@ -54,3 +54,7 @@ class ListAndItemModelsTest(TestCase):
             # method `Model.full_clean()`
             item.save()
             item.full_clean()
+
+    def test_List_get_absolute_url(self):
+        list_ = List.objects.create()
+        self.assertEqual(list_.get_absolute_url(), f'/lists/{list_.id}/')
