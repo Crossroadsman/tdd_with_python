@@ -141,6 +141,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         start_time = time.time()
         while True:
             try:
+                # time.sleep(1)
                 return fn()
             # WebDriverException will fire if the page hasn't reloaded
             # AssertionError will fire if the page has started to load
