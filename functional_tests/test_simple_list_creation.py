@@ -6,31 +6,7 @@ from .base import FunctionalTest
 
 """Installation Notes
    ------------------
-To enable firefox to run on a headless Ubuntu server we need to:
-- install geckodriver (mozilla/geckodriver on github)
-  ```console
-  # <EITHER>
-  wget <url> -O geckodriver.tar.gz
-  # <OR>
-  curl -L <url> -o geckodriver.tar.gz
-  # <THEN>
-  mkdir ~/bin
-  tar -xvf geckodriver.tar.gz -C ~/bin
-  # <THEN MAYBE (SEE COMMENTS)>
-  chmod +x ~/bin/geckodriver  # if doesn't already have execute permission
-  echo PATH=$PATH:~/bin >> ~/.profile  # if ~/bin isn't already in path
-  . ~/.profile
-  ```
-- install firefox
-- install xvfb (the X windows virtual framebuffer)
-- Run xvfb in the background (of the session running the tests)
-  ```console
-  Xvfb :10 -ac &
-  ```
-- set the DISPLAY variable
-  ```console
-  export DISPLAY=:10
-  ```
+see base.py
 """
 
 
@@ -64,7 +40,7 @@ class NewVisitorTest(FunctionalTest):
         self.assertIn(target_text, header_text)
 
         # She is invited to enter a to-do item straight away
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.get_item_input_box()
         self.assertEqual(
             inputbox.get_attribute('placeholder'),
             'Enter a to-do item'
@@ -80,7 +56,7 @@ class NewVisitorTest(FunctionalTest):
 
         # There is still a text box inviting her to add another item. She
         # enters "Use peacock feathers to make a fly"
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.get_item_input_box()
         inputbox.send_keys('Use peacock feathers to make a fly')
         inputbox.send_keys(Keys.ENTER)
 
@@ -93,7 +69,7 @@ class NewVisitorTest(FunctionalTest):
     def test_multiple_users_can_start_lists_with_unique_urls(self):
         # Alice starts a new to-do list
         self.browser.get(self.live_server_url)
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.get_item_input_box()
         inputbox.send_keys('Buy peacock feathers')
         inputbox.send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1: Buy peacock feathers')
@@ -118,7 +94,7 @@ class NewVisitorTest(FunctionalTest):
 
         # Bob starts a new list by entering a new item. His is less
         # interesting than Alice
-        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox = self.get_item_input_box()
         inputbox.send_keys('Buy milk')
         inputbox.send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1: Buy milk')
