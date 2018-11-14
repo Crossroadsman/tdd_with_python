@@ -2,12 +2,15 @@ from django.test import TestCase
 from django.utils.html import escape
 
 from lists.models import Item, List
+from lists.forms import ItemForm
 
 
 class HomePageTest(TestCase):
 
-    def test_GET_uses_home_template(self):
-        """Make sure that GET requests use the correct template"""
+    # We can remove specific references to GET requests because this view
+    # only handles GET requests.
+    def test_uses_home_template(self):
+        """Make sure that requests use the correct template"""
         # instead of manually creating an HttpRequest object (as we did
         # in the earlier version of this test, we can use self.client.get
         # (part of the Django extensions to TestCase)
@@ -19,9 +22,14 @@ class HomePageTest(TestCase):
         # the right content is shown to the user).
         self.assertTemplateUsed(response, 'lists/home.html')
 
-    def test_GET_requests_do_not_save_to_db(self):
+    def test_requests_do_not_save_to_db(self):
         self.client.get('/')
         self.assertEqual(Item.objects.count(), 0)
+
+    def test_uses_item_form(self):
+        response = self.client.get('/')
+        print(response.context)
+        self.assertIsInstance(response.context['form'], ItemForm)
 
 
 class ListViewTest(TestCase):
