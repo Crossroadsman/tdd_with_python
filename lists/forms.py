@@ -10,6 +10,17 @@ ERROR_MESSAGES = {
 
 class ItemForm(forms.models.ModelForm):
 
+    def save(self, for_list):
+
+        # overloading the form's save method is an alternative to the
+        # common practice of using commit=False, then assigning the list
+        # then calling save again.
+        #
+        # the .instance attribute on a form represents the database object
+        # that is being modified or created.
+        self.instance.list = for_list
+        return super().save()
+
     class Meta:
         model = Item
         fields = ('text',)
