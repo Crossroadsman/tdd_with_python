@@ -9,6 +9,13 @@ class Item(models.Model):
         on_delete=models.CASCADE,
         default=None)
 
+    class Meta:
+        ordering = ('id',)
+        unique_together = ('list', 'text')
+
+    def __str__(self):
+        return self.text
+
 
 class List(models.Model):
 
