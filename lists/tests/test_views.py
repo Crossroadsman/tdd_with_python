@@ -131,9 +131,22 @@ class ListViewTest(TestCase):
         response = self.post_invalid_input()
         self.assertIsInstance(response.context['form'], ItemForm)
 
-    def test_invalid_input_shows_error_on_page(self):
+    def test_empty_input_shows_error_on_page(self):
         response = self.post_invalid_input()
         self.assertContains(response, escape(ERROR_MESSAGES['blank item']))
+
+    def test_duplicate_input_shows_error_on_page(self):
+        list_ = List.objects.create()
+        item1 = Item.objects.create(list=list_, text='foo')
+        response = self.client.post(
+            f'/lists/{list_.id}/',
+            data={'text': 'foo'}
+        )
+
+        expected_error = escape("You've already got this in your list")
+        self.assertContains(response, expected_error)
+        self.assertTemplateUsed(response, 'list.html')
+        self.assertEqual(Item.objects.all().count(), 1)
 
     def test_displays_item_form(self):
         list_ = List.objects.create()
@@ -189,7 +202,7 @@ class NewListTest(TestCase):
         expected_error = escape(ERROR_MESSAGES['blank item'])
         self.assertContains(response, expected_error)
 
-    def test_invalid_POST_passes_form_to_home_page_template(self):
+    def test_invalid_POST_passes_form_to_template(self):
         self.item_text = ''
         self.post_data = {'text': self.item_text}
         response = self.client.post(self.post_url, self.post_data)
