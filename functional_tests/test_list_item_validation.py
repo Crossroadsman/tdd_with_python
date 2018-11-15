@@ -7,33 +7,8 @@ from .base import FunctionalTest
 
 """Installation Notes
    ------------------
-To enable firefox to run on a headless Ubuntu server we need to:
-- install geckodriver (mozilla/geckodriver on github)
-  ```console
-  # <EITHER>
-  wget <url> -O geckodriver.tar.gz
-  # <OR>
-  curl -L <url> -o geckodriver.tar.gz
-  # <THEN>
-  mkdir ~/bin
-  tar -xvf geckodriver.tar.gz -C ~/bin
-  # <THEN MAYBE (SEE COMMENTS)>
-  chmod +x ~/bin/geckodriver  # if doesn't already have execute permission
-  echo PATH=$PATH:~/bin >> ~/.profile  # if ~/bin isn't already in path
-  . ~/.profile
-  ```
-- install firefox
-- install xvfb (the X windows virtual framebuffer)
-- Run xvfb in the background (of the session running the tests)
-  ```console
-  Xvfb :10 -ac &
-  ```
-- set the DISPLAY variable
-  ```console
-  export DISPLAY=:10
-  ```
+see base.py
 """
-
 
 """Tests
    -----
@@ -86,4 +61,26 @@ class ItemValidationTest(FunctionalTest):
         new_item_field.send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1: Buy milk')
         self.wait_for_row_in_list_table('2: Make tea')
+
+    def test_cannot_add_duplicate_items(self):
+
+        # Alice goes to the home page and starts a new list
+        self.browser.get(self.live_server_url)
+        input_text = 'Buy wellies'
+        input_box = self.get_item_input_box()
+        input_box.send_keys(input_text)
+        input_box.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table(f'1: {input_text}')
+
+        # She accidentally tries to enter a duplicate item
+        input_box = self.get_item_input_box()
+        input_box.send_keys(input_text)
+        input_box.send_keys(Keys.ENTER)
+
+        # She sees a helpful error message
+        self.wait_for(lambda: self.assertEqual(
+            self.browser.find_element_by_css_selector('.has-error').text,
+            "You've already got this in your list"
+        ))
+
 

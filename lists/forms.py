@@ -1,10 +1,12 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 from lists.models import Item
 
 
 ERROR_MESSAGES = {
     'blank item': "You can't have an empty list item",
+    'duplicate item': "You've already got this in your list",
 }
 
 
@@ -47,3 +49,24 @@ class ItemForm(forms.models.ModelForm):
         error_messages = {
             'text': {'required': ERROR_MESSAGES['blank item']},
         }
+
+class ExistingListItemForm(ItemForm):
+    
+    def __init__(self, for_list, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance.list = for_list
+
+    def validate_unique(self):
+        try:
+            # the Model.validate_unique() method validates all uniqueness
+            # constraints (e.g., `unique`, `unique_together`) on the model
+            self.instance.validate_unique()
+        except ValidationError as e:
+            # Here we are overriding the error message
+            e.error_dict = {'text': [ERROR_MESSAGES['duplicate item']]}
+            self._update_errors(e)
+
+    def save(self):
+        """bypass the immediate parent's save method and use the version
+        from ModelForm"""
+        return forms.models.ModelForm.save(self)

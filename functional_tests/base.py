@@ -73,7 +73,8 @@ To enable firefox to run on a headless Ubuntu server we need to:
 """Constants
    ---------
 """
-MAX_WAIT = 10  # can change if tests frequently timeout
+MAX_WAIT = 3  # can change if tests frequently timeout
+WAIT_TICK = 0.1  # change if tests frequently timeout
 
 
 """Base Test Class
@@ -112,7 +113,7 @@ class FunctionalTest(StaticLiveServerTestCase):
         # but Internet weather might cause a failure in the future if
         # load time is particularly slow. At that time we could consider
         # raising the sleep time.
-        time.sleep(1) # give page a moment to load
+        time.sleep(WAIT_TICK) # give page a moment to load
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
         return [row.text for row in rows]
@@ -150,7 +151,7 @@ class FunctionalTest(StaticLiveServerTestCase):
             except (AssertionError, WebDriverException) as e:
                 if time.time() - start_time > MAX_WAIT:
                     raise e
-                time.sleep(0.5)
+                time.sleep(WAIT_TICK)
 
     def get_item_input_box(self):
         return self.browser.find_element_by_id('id_text')
