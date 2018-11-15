@@ -47,20 +47,23 @@ class ItemValidationTest(FunctionalTest):
         self.browser.get(self.live_server_url)
         self.get_item_input_box().send_keys(Keys.ENTER)
 
-        # The home page responds with an error message saying that list
-        # items cannot be blank.
-        # (As originally written, this test could fail, even if the code 
-        # works, because this assert will fire before the page has had 
-        # time to reload with the new css and error message. Thus we need 
-        # an explicit wait)
-        self.wait_for(lambda: self.assertEqual(
-            self.browser.find_element_by_css_selector('.has-error').text,
-            "You can't have an empty list item"
+        # The browser intercepts the request (the `required` attribute
+        # was added to the HTML input), and does not load the list page
+        # (The `:invalid` CSS pseudoselector is applied by the browser not
+        # by our CSS)
+        self.wait_for(lambda: self.browser.find_elements_by_css_selector(
+            '#id_text:invalid'
         ))
 
-        # She tries again with some text for the item, which now works.
+        # She starts typing some text for the new item and the error 
+        # disappears
         new_item_field = self.get_item_input_box()
         new_item_field.send_keys('Buy milk')
+        self.wait_for(lambda: self.browser.find_elements_by_css_selector(
+            '#id_text:valid'
+        ))
+
+        # then she can submit it successfully
         new_item_field.send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1: Buy milk')
 
@@ -68,15 +71,18 @@ class ItemValidationTest(FunctionalTest):
         # and again tries to submit an empty list item
         self.get_item_input_box().send_keys(Keys.ENTER)
 
-        # She receives a similar warning from the list page.
-        self.wait_for(lambda: self.assertEqual(
-            self.browser.find_element_by_css_selector('.has-error').text,
-            "You can't have an empty list item"
+        # Again the browser will not comply
+        self.wait_for_row_in_list_table('1: Buy milk')
+        self.wait_for(lambda: self.browser.find_elements_by_css_selector(
+            '#id_text:invalid'
         ))
 
         # She corrects it by filling some text in.
         new_item_field = self.get_item_input_box()
         new_item_field.send_keys('Make tea')
+        self.wait_for(lambda: self.browser.find_elements_by_css_selector(
+            '#id_text:valid'
+        ))
         new_item_field.send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1: Buy milk')
         self.wait_for_row_in_list_table('2: Make tea')

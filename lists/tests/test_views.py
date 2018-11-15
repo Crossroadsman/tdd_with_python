@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.utils.html import escape
 
 from lists.models import Item, List
-from lists.forms import ItemForm
+from lists.forms import ItemForm, ERROR_MESSAGES
 
 
 class HomePageTest(TestCase):
@@ -28,13 +28,21 @@ class HomePageTest(TestCase):
 
     def test_uses_item_form(self):
         response = self.client.get('/')
-        print(response.context)
         self.assertIsInstance(response.context['form'], ItemForm)
 
 
 class ListViewTest(TestCase):
 
-    def test_uses_list_template(self):
+    # Helper methods
+    def post_invalid_input(self):
+        list_ = List.objects.create()
+        return self.client.post(
+            f'/lists/{list_.id}/',
+            data={'text': ''}
+        )
+
+    # Tests
+    def test_GET_renders_list_template(self):
         list_ = List.objects.create()
         response = self.client.get(f'/lists/{list_.id}/')
         self.assertTemplateUsed(response, 'lists/list.html')
@@ -110,16 +118,28 @@ class ListViewTest(TestCase):
         )
         self.assertRedirects(response, f'/lists/{correct_list.id}/')
 
-    def test_invalid_POST_renders_list_view(self):
-        list_ = List.objects.create()
-        response = self.client.post(
-            f'/lists/{list_.id}/',
-            data={'text': ''}
-        )
+    def test_invalid_POST_doesnt_save_to_db(self):
+        self.post_invalid_input()
+        self.assertEqual(Item.objects.count(), 0)
+
+    def test_invalid_POST_renders_list_template(self):
+        response = self.post_invalid_input()
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'lists/list.html')
-        expected_error = escape("You can't have an empty list item")
-        self.assertContains(response, expected_error)
+
+    def test_invalid_POST_passes_form_to_template(self):
+        response = self.post_invalid_input()
+        self.assertIsInstance(response.context['form'], ItemForm)
+
+    def test_invalid_input_shows_error_on_page(self):
+        response = self.post_invalid_input()
+        self.assertContains(response, escape(ERROR_MESSAGES['blank item']))
+
+    def test_displays_item_form(self):
+        list_ = List.objects.create()
+        response = self.client.get(f'/lists/{list_.id}/')
+        self.assertIsInstance(response.context['form'], ItemForm)
+        self.assertContains(response, 'name="text"')
 
 
 class NewListTest(TestCase):
@@ -139,7 +159,7 @@ class NewListTest(TestCase):
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, self.item_text)
 
-    def test_redirects_after_POST_request(self):
+    def test_redirects_to_list_view_after_valid_POST_request(self):
         """Make sure the home page redirects after a POST"""
 
         # self.client.post takes a `data` argument that contains a
@@ -155,14 +175,25 @@ class NewListTest(TestCase):
         new_list = List.objects.first()
         self.assertRedirects(response, f'/lists/{new_list.id}/')
 
-    def test_validation_errors_are_sent_back_to_home_page_template(self):
+    def test_invalid_POST_renders_home_page_template(self):
         self.item_text = ''
         self.post_data = {'text': self.item_text}
         response = self.client.post(self.post_url, self.post_data)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'lists/home.html')
-        expected_error = escape("You can't have an empty list item")
+
+    def test_invalid_POST_shows_errors_on_home_page_templat(self):
+        self.item_text = ''
+        self.post_data = {'text': self.item_text}
+        response = self.client.post(self.post_url, self.post_data)
+        expected_error = escape(ERROR_MESSAGES['blank item'])
         self.assertContains(response, expected_error)
+
+    def test_invalid_POST_passes_form_to_home_page_template(self):
+        self.item_text = ''
+        self.post_data = {'text': self.item_text}
+        response = self.client.post(self.post_url, self.post_data)
+        self.assertIsInstance(response.context['form'], ItemForm)
 
     def test_invalid_list_items_arent_saved(self):
         self.item_text = ''
