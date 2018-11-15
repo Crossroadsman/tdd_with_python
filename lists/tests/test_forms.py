@@ -52,3 +52,10 @@ class ExistingListItemFormTest(TestCase):
         self.assertEqual(form.errors['text'], 
                          [ERROR_MESSAGES['duplicate item']])
 
+    def test_save(self):
+        """Shouldn't need any args passed to save() on this subclass"""
+        list_ = List.objects.create()
+        form = ExistingListItemForm(for_list=list_, data={'text': 'foo'})
+        new_item = form.save()
+        self.assertEqual(new_item, Item.objects.all()[0])
+

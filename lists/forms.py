@@ -66,3 +66,7 @@ class ExistingListItemForm(ItemForm):
             e.error_dict = {'text': [ERROR_MESSAGES['duplicate item']]}
             self._update_errors(e)
 
+    def save(self):
+        """bypass the immediate parent's save method and use the version
+        from ModelForm"""
+        return forms.models.ModelForm.save(self)
