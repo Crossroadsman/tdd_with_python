@@ -35,7 +35,7 @@
         /* jQuery's .trigger() method is used mainly for testing. It means:
            fire a JS DOM event on the element(s)
         */
-        initialize();
+        window.Superlists.initialize();
         $('input[name="text"]').trigger('keypress');
         /* in an assert, the string describes the test (not the failure
            state)
@@ -50,7 +50,7 @@
       QUnit.test(
           "errors aren't hidden if there is no keypress",
           function (assert) {
-              initialize();
+              window.Superlists.initialize();
               assert.equal($('.has-error').is(':visible'),
                            true,
                            "'.has-error' visible state before hiding"); 

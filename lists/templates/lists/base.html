@@ -56,6 +56,13 @@
     <script src="{% static 'lists/js/list.js' %}"></script>
 
     <!-- initialize -->
-    <script>initialize();</script>
+    <script>
+        /* onload (make sure we don't load initialize until the page is
+           fully loaded
+        */
+        $(document).ready(function () {
+            window.Superlists.initialize();
+        });
+    </script>
   </body>
 </html>
