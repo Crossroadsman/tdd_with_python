@@ -4,11 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>JavaScript Tests</title>
+    <link rel="stylesheet" href="qunit-2.8.0.css">
   </head>
 
   <body>
-    <div id="qunit"></div>
-    <div id="qunit-fixture"></div>
+    <div id="qunit"></div> <!-- end #qunit -->
+    <div id="qunit-fixture">
+      <!-- the contents of '#qunit-fixture' is reset between tests -->
+      <!-- begin example html -->
+
+      <form>
+        <input name="text" />
+        <div class="has-error">Error text</div>
+      </form>
+
+      <!-- end example html -->
+    </div> <!-- end #qunit-fixture -->
+
+
+    <script src="../jquery/jquery-3.3.1.js"></script>
     <script src="qunit-2.8.0.js"></script>
 
     <script>
@@ -17,7 +31,33 @@
          - the second argument is the function that defines the test
        */
       QUnit.test("smoke test", function (assert) {
-        assert.equal(1, 1, "Maths works!");
+        /* in an assert, the string describes the test (not the failure
+           state)
+           in assert.equal, the first value represents the actual and
+           the second value is the expected 
+        */
+        assert.equal($('.has-error').is(':visible'),
+                     true,
+                     "'.has-error' is visible before hiding");
+        $('.has-error').hide();
+        assert.equal($('.has-error').is(':visible'),
+                     false,
+                     "'.has-error' is not visible after hiding");
+      });
+      
+      QUnit.test("other smoke test", function (assert) {
+        /* in an assert, the string describes the test (not the failure
+           state)
+           in assert.equal, the first value represents the actual and
+           the second value is the expected 
+        */
+        assert.equal($('.has-error').is(':visible'),
+                     true,
+                     "'.has-error' is visible before hiding");
+        $('.has-error').hide();
+        assert.equal($('.has-error').is(':visible'),
+                     false,
+                     "'.has-error' is not visible after hiding");
       });
     </script>
   </body>
