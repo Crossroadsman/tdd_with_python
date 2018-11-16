@@ -11,14 +11,14 @@
     <div id="qunit"></div> <!-- end #qunit -->
     <div id="qunit-fixture">
       <!-- the contents of '#qunit-fixture' is reset between tests -->
-      <!-- begin example html -->
 
+      <!-- test html -->
       <form>
         <input name="text" />
         <div class="has-error">Error text</div>
       </form>
+      <!-- end test html -->
 
-      <!-- end example html -->
     </div> <!-- end #qunit-fixture -->
 
 
@@ -48,13 +48,22 @@
       });
 
       QUnit.test(
-          "errors aren't hidden if there is no keypress",
+          "errors aren't hidden if there is no user input",
           function (assert) {
               window.Superlists.initialize();
               assert.equal($('.has-error').is(':visible'),
                            true,
                            "'.has-error' visible state before hiding"); 
       });
+
+      QUnit.test("errors should be hidden on click", function (assert) {
+        window.Superlists.initialize();
+        $('input[name="text"]').trigger('click');
+        assert.equal($('.has-error').is(':visible'),
+                     false,
+                     "'.has-error' visible state after hiding");
+      });
+
     </script>
   </body>
 </html>

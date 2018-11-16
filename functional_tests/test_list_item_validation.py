@@ -110,11 +110,36 @@ class ItemValidationTest(FunctionalTest):
             # starting to hide elements)
             self.get_error_element().is_displayed()
         ))
+        
         # She starts typing in the input box to clear the error
         input_box = self.get_item_input_box()
         input_box.send_keys('a')
 
         # She is pleased to see that the error message disappears
+        self.wait_for(lambda: self.assertFalse(
+            self.get_error_element().is_displayed()
+        ))
+
+        # Now, Bob starts a list and causes a validation error
+        self.browser.get(self.live_server_url)
+        item_text = 'Labrador puppies'
+        input_box = self.get_item_input_box()
+        input_box.send_keys(item_text)
+        input_box.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table(f'1: {item_text}')
+
+        input_box = self.get_item_input_box()
+        input_box.send_keys(item_text)
+        input_box.send_keys(Keys.ENTER)
+        self.wait_for(lambda: self.assertTrue(
+            self.get_error_element().is_displayed()
+        ))
+        
+        # He clicks in the input box to clear the error
+        input_box = self.get_item_input_box()
+        input_box.click()
+
+        # He is pleased to see that the error message disappears
         self.wait_for(lambda: self.assertFalse(
             self.get_error_element().is_displayed()
         ))
