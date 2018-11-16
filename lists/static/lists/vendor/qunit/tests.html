@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>JavaScript Tests</title>
+  </head>
+
+  <body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+    <script src="qunit-2.8.0.js"></script>
+
+    <script>
+      /* Qunit.test() creates a test case
+         - the first argument is the test's name
+         - the second argument is the function that defines the test
+       */
+      QUnit.test("smoke test", function (assert) {
+        assert.equal(1, 1, "Maths works!");
+      });
+    </script>
+  </body>
+</html>
