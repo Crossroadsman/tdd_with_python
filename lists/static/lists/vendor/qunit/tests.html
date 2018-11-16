@@ -23,6 +23,7 @@
 
 
     <script src="../jquery/jquery-3.3.1.js"></script>
+    <script src="../../js/list.js"></script>
     <script src="qunit-2.8.0.js"></script>
 
     <script>
@@ -30,34 +31,29 @@
          - the first argument is the test's name
          - the second argument is the function that defines the test
        */
-      QUnit.test("smoke test", function (assert) {
+      QUnit.test("errors should be hidden on keypress", function (assert) {
+        /* jQuery's .trigger() method is used mainly for testing. It means:
+           fire a JS DOM event on the element(s)
+        */
+        initialize();
+        $('input[name="text"]').trigger('keypress');
         /* in an assert, the string describes the test (not the failure
            state)
            in assert.equal, the first value represents the actual and
            the second value is the expected 
         */
         assert.equal($('.has-error').is(':visible'),
-                     true,
-                     "'.has-error' is visible before hiding");
-        $('.has-error').hide();
-        assert.equal($('.has-error').is(':visible'),
                      false,
-                     "'.has-error' is not visible after hiding");
+                     "'.has-error' visible state after hiding");
       });
-      
-      QUnit.test("other smoke test", function (assert) {
-        /* in an assert, the string describes the test (not the failure
-           state)
-           in assert.equal, the first value represents the actual and
-           the second value is the expected 
-        */
-        assert.equal($('.has-error').is(':visible'),
-                     true,
-                     "'.has-error' is visible before hiding");
-        $('.has-error').hide();
-        assert.equal($('.has-error').is(':visible'),
-                     false,
-                     "'.has-error' is not visible after hiding");
+
+      QUnit.test(
+          "errors aren't hidden if there is no keypress",
+          function (assert) {
+              initialize();
+              assert.equal($('.has-error').is(':visible'),
+                           true,
+                           "'.has-error' visible state before hiding"); 
       });
     </script>
   </body>

@@ -1,3 +1,4 @@
+import time
 from unittest import skip
 
 from selenium.webdriver.common.keys import Keys
@@ -109,7 +110,6 @@ class ItemValidationTest(FunctionalTest):
             # starting to hide elements)
             self.get_error_element().is_displayed()
         ))
-
         # She starts typing in the input box to clear the error
         input_box = self.get_item_input_box()
         input_box.send_keys('a')
