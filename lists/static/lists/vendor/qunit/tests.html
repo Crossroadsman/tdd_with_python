@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>JavaScript Tests</title>
+    <link rel="stylesheet" href="qunit-2.8.0.css">
+  </head>
+
+  <body>
+    <div id="qunit"></div> <!-- end #qunit -->
+    <div id="qunit-fixture">
+      <!-- the contents of '#qunit-fixture' is reset between tests -->
+
+      <!-- test html -->
+      <form>
+        <input name="text" />
+        <div class="has-error">Error text</div>
+      </form>
+      <!-- end test html -->
+
+    </div> <!-- end #qunit-fixture -->
+
+
+    <script src="../jquery/jquery-3.3.1.js"></script>
+    <script src="../../js/list.js"></script>
+    <script src="qunit-2.8.0.js"></script>
+
+    <script>
+      /* Qunit.test() creates a test case
+         - the first argument is the test's name
+         - the second argument is the function that defines the test
+       */
+      QUnit.test("errors should be hidden on keypress", function (assert) {
+        /* jQuery's .trigger() method is used mainly for testing. It means:
+           fire a JS DOM event on the element(s)
+        */
+        window.Superlists.initialize();
+        $('input[name="text"]').trigger('keypress');
+        /* in an assert, the string describes the test (not the failure
+           state)
+           in assert.equal, the first value represents the actual and
+           the second value is the expected 
+        */
+        assert.equal($('.has-error').is(':visible'),
+                     false,
+                     "'.has-error' visible state after hiding");
+      });
+
+      QUnit.test(
+          "errors aren't hidden if there is no user input",
+          function (assert) {
+              window.Superlists.initialize();
+              assert.equal($('.has-error').is(':visible'),
+                           true,
+                           "'.has-error' visible state before hiding"); 
+      });
+
+      QUnit.test("errors should be hidden on click", function (assert) {
+        window.Superlists.initialize();
+        $('input[name="text"]').trigger('click');
+        assert.equal($('.has-error').is(':visible'),
+                     false,
+                     "'.has-error' visible state after hiding");
+      });
+
+    </script>
+  </body>
+</html>
