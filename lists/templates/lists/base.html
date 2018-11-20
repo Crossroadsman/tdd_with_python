@@ -15,8 +15,22 @@
 
   <body>
     <!-- `containers` are the most basic layout element in bootstrap and
-         required when using the default grid system. -->
+         required when using the default grid system.
+
+         `container` represents a responsive, fixed-width container;
+         `container-fluid` represents a full-width container.
+
+         Note that neither container is nestable. -->
     <div class="container">
+
+      <nav class="navbar navbar-default" role="navigation">
+        <a class="navbar-brand" href="/">Superlists</a>
+        <form class="navbar-form navbar-right" method=POST">
+          {% csrf_token %}
+          <span>Enter email to log in:</span>
+          <input class="form-control" name="email" type="text" />
+        </form>
+      </nav>
       
       <!-- `row`s are wrappers for columns -->
       <div class="row">
