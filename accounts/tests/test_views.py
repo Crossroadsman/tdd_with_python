@@ -79,17 +79,21 @@ class SendLoginEmailViewTest(TestCase):
         self.assertEqual(token.email, 'alice@example.com')
 
 
+# We can use patch to apply a mock to an individual test (like we do
+# with `test_POST_sends_link_to_login_using_token_uid`) or to a whole
+# test class (like we do here).
+#
+# Note also that here we are mocking a whole module (`django.contrib.auth`,
+# which we expect to import in `accounts.views` as `auth`). Mocking a whole 
+# module implicitly mocks out all the functions and any other objects 
+# contained in that module.
+@patch('accounts.views.auth') 
 class LoginViewTest(TestCase):
 
-    def test_redirects_to_home_page(self):
+    def test_redirects_to_home_page(self, mock_auth):
         response = self.client.get('/accounts/login?token=abcd123')
         self.assertRedirects(response, '/')
 
-    # Here we are mocking a whole module (`django.contrib.auth`, which we
-    # expect to import in views as `auth`).
-    # Mocking the whole module implicitly mocks out all the
-    # functions and any other objects contained in that module
-    @patch('accounts.views.auth')
     def test_calls_authenticate_with_uid_from_get_request(self, mock_auth):
         self.client.get('/accounts/login?token=abcd123')
 
@@ -109,7 +113,6 @@ class LoginViewTest(TestCase):
             expected_args
         )
 
-    @patch('accounts.views.auth')
     def test_calls_login_with_valid_user(self, mock_auth):
         response = self.client.get('/accounts/login?token=abcd123')
 
@@ -122,4 +125,14 @@ class LoginViewTest(TestCase):
         self.assertEqual(
             result_args,
             expected_args
+        )
+
+    def test_doesnt_call_login_if_invalid_user(self, mock_auth):
+        mock_auth.authenticate.return_value = None
+
+        self.client.get('/accounts/login?token=abcd123')
+
+        self.assertEqual(
+            mock_auth.login.called,
+            False
         )
