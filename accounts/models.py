@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 
-class User(models.Model):
+class ListUser(models.Model):
     email = models.EmailField(primary_key=True)
 
     """
@@ -51,4 +51,8 @@ class Token(models.Model):
     """
     uid = models.CharField(default=uuid.uuid4,
                            max_length=40)
+
+
+    def __str__(self):
+        return str(self.uid)
 
