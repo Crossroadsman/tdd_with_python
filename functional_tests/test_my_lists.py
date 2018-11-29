@@ -28,6 +28,10 @@ class MyListsTest(FunctionalTest):
         # The session also stores information to lookup which authentication
         # backend was used to authenticate th user. Hence the
         # BACKEND_SESSION_KEY
+        # (if this stops working and needs a hash session key, check the
+        # following gist:
+        # https://gist.github.com/dbrgn/bae5329e17d2801a041e
+        # )
         session = SessionStore()
         session[SESSION_KEY] = user.pk
         session[BACKEND_SESSION_KEY] = settings.AUTHENTICATION_BACKENDS[0]
