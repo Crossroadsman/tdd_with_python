@@ -18,6 +18,9 @@ class LoginTest(FunctionalTest):
         # Alice goes to the awesome superlists site and notices a 'Log in'
         # section in the navbar for the first time.
         # It's telling her to enter her email address, so she does
+        # (`find_element_by_name` returns the html element with the 
+        # specified `name` attribute (i.e., not <email>, but
+        # <element name='email'>))
         self.browser.get(self.live_server_url)
         email_element = self.browser.find_element_by_name('email')
         email_element.send_keys(TEST_EMAIL)
@@ -56,3 +59,13 @@ class LoginTest(FunctionalTest):
         )
         navbar = self.browser.find_element_by_css_selector('.navbar')
         self.assertIn(TEST_EMAIL, navbar.text)
+
+        # Now she logs out
+        self.browser.find_element_by_link_text('Log Out').click()
+
+        # She is logged out
+        self.wait_for(
+            lambda: self.browser.find_element_by_name('email')
+        )
+        navbar = self.browser.find_element_by_css_selector('.navbar')
+        self.assertNotIn(TEST_EMAIL, navbar.text)

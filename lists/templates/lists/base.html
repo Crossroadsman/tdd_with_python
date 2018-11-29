@@ -28,7 +28,7 @@
         {% if user.email %} <!-- user is logged-in -->
           <ul class="nav navbar-nav navbar-right">
             <li class="navbar=text">Logged in as {{ user.email }}</li>
-            <li><a href="#">Log Out</a></li>
+            <li><a href="{% url 'logout' %}">Log Out</a></li>
           </ul>
         {% else %} <!-- user is not logged-in -->
           <form class="navbar-form navbar-right" 
