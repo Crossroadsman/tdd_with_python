@@ -15,8 +15,10 @@ Including another URLconf
 """
 # from django.contrib import admin
 from django.urls import path, re_path, include
+
 from lists import views as list_views
 from lists import urls as list_urls
+from accounts import urls as accounts_urls
 
 # Note that with our URLs we are using the following convention:
 # - urls that modify the database ('action' urls): no trailing slash
@@ -25,4 +27,5 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     re_path(r'^$', list_views.home_page, name='home'),
     re_path(r'^lists/', include(list_urls)),
+    re_path(r'^accounts/', include(accounts_urls)),
 ]

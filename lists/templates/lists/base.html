@@ -15,8 +15,45 @@
 
   <body>
     <!-- `containers` are the most basic layout element in bootstrap and
-         required when using the default grid system. -->
+         required when using the default grid system.
+
+         `container` represents a responsive, fixed-width container;
+         `container-fluid` represents a full-width container.
+
+         Note that neither container is nestable. -->
     <div class="container">
+
+      <nav class="navbar navbar-default" role="navigation">
+        <a class="navbar-brand" href="/">Superlists</a>
+        {% if user.email %} <!-- user is logged-in -->
+          <ul class="nav navbar-nav navbar-right">
+            <li class="navbar=text">Logged in as {{ user.email }}</li>
+            <li><a href="{% url 'logout' %}">Log Out</a></li>
+          </ul>
+        {% else %} <!-- user is not logged-in -->
+          <form class="navbar-form navbar-right" 
+                method="POST"
+                action="{% url 'send_login_email' %}">
+            {% csrf_token %}
+            <span>Enter email to log in:</span>
+            <input class="form-control" name="email" type="text" />
+          </form>
+        {% endif %}
+      </nav>
+
+      {% if messages %}
+        <div class="row">
+          <div class="col-md-8">
+            {% for message in messages %}
+              {% if message.level_tag == 'success' %}
+                <div class="alert alert-success">{{ message }}</div>
+              {% else %}
+                <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+            {% endfor %}
+          </div> <!-- col-md-8 -->
+        </div> <!-- row -->
+      {% endif %}
       
       <!-- `row`s are wrappers for columns -->
       <div class="row">
