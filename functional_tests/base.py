@@ -153,6 +153,24 @@ class FunctionalTest(StaticLiveServerTestCase):
                     raise e
                 time.sleep(WAIT_TICK)
 
+    def wait_to_be_logged_in(self, email):
+        # we know that if the page has  a `Log Out` link, the user must be
+        # logged in.
+        self.wait_for(
+            lambda: self.browser.find_element_by_link_text('Log Out')
+        )
+        navbar = self.browser.find_element_by_css_selector('.navbar')
+        self.assertIn(email, navbar.text)
+
+    def wait_to_be_logged_out(self, email):
+        # we know that if there is an element with a name attribute of
+        # 'email' that the user is not logged in.
+        self.wait_for(
+            lambda: self.browser.find_element_by_name('email')
+        )
+        navbar = self.browser.find_element_by_css_selector('.navbar')
+        self.assertNotIn(email, navbar.text)
+
     def get_item_input_box(self):
         return self.browser.find_element_by_id('id_text')
 
