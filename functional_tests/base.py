@@ -74,7 +74,7 @@ To enable firefox to run on a headless Ubuntu server we need to:
    ---------
 """
 MAX_WAIT = 3  # can change if tests frequently timeout
-WAIT_TICK = 0.1  # change if tests frequently timeout
+WAIT_TICK = 0.5  # change if tests frequently timeout
 
 
 """Base Test Class
@@ -96,78 +96,44 @@ class FunctionalTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.browser.quit()
 
-    # helper methods
-    # --------------
-    def get_table_row_texts(self):
-
-        # we were getting selenium StaleElementException with the sleep
-        # in the original location. This might be because on the first
-        # iteration of the loop, the page is still loading (longer now
-        # because of redirect after POST). Thus between id_list_table
-        # being assigned to table and querying table for `tr` elements
-        # the trs had gone stale.
-        # Thus we put a sleep before we assign to table so that when
-        # we do get `id_list_table` it is from the fully loaded page
-        # and so not stale when we go back to look for `tr` elements
-        # This has now worked at least once since moving the sleep
-        # but Internet weather might cause a failure in the future if
-        # load time is particularly slow. At that time we could consider
-        # raising the sleep time.
-        time.sleep(WAIT_TICK) # give page a moment to load
-        table = self.browser.find_element_by_id('id_list_table')
-        rows = table.find_elements_by_tag_name('tr')
-        return [row.text for row in rows]
-
-    def wait_for_row_in_list_table(self, row_text):
-        start_time = time.time()
-        while True:
-            try:
-                row_texts = self.get_table_row_texts()
-            # WebDriverException will fire if the page hasn't loaded
-            except WebDriverException as e:
-                if time.time() - start_time > MAX_WAIT:
-                    raise e
-            else:
+    # decorator methods
+    # -----------------
+    def wait(fn):
+        def modified_fn(*args, **kwargs):
+            start_time = time.time()
+            while True:
                 try:
-                    self.assertIn(row_text, row_texts)
-                # AssertionError will fire if the table exists but the
-                # row isn't present (yet).
-                except AssertionError as e:
+                    return fn(*args, **kwargs)
+                except (AssertionError, WebDriverException) as e:
                     if time.time() - start_time > MAX_WAIT:
                         raise e
-                else:
-                    return
+                    time.sleep(WAIT_TICK)
+        return modified_fn
 
+    # helper methods
+    # --------------
+    @wait
+    def wait_for_row_in_list_table(self, row_text):
+        table = self.browser.find_element_by_id('id_list_table')
+        rows = table.find_elements_by_tag_name('tr')
+        self.assertIn(row_text, [row.text for row in rows])
+
+    @wait
     def wait_for(self, fn):
-        start_time = time.time()
-        while True:
-            try:
-                # time.sleep(1)
-                return fn()
-            # WebDriverException will fire if the page hasn't reloaded
-            # AssertionError will fire if the page has started to load
-            # but hasn't yet loaded the specified value, or if the
-            # page has fully loaded but the specified value doesn't exist
-            except (AssertionError, WebDriverException) as e:
-                if time.time() - start_time > MAX_WAIT:
-                    raise e
-                time.sleep(WAIT_TICK)
+        return fn()
 
+    @wait
     def wait_to_be_logged_in(self, email):
         # we know that if the page has  a `Log Out` link, the user must be
         # logged in.
-        self.wait_for(
-            lambda: self.browser.find_element_by_link_text('Log Out')
-        )
+        self.browser.find_element_by_link_text('Log Out')
         navbar = self.browser.find_element_by_css_selector('.navbar')
         self.assertIn(email, navbar.text)
 
     def wait_to_be_logged_out(self, email):
         # we know that if there is an element with a name attribute of
         # 'email' that the user is not logged in.
-        self.wait_for(
-            lambda: self.browser.find_element_by_name('email')
-        )
+        self.browser.find_element_by_name('email')
         navbar = self.browser.find_element_by_css_selector('.navbar')
         self.assertNotIn(email, navbar.text)
 
