@@ -89,8 +89,8 @@ class FunctionalTest(StaticLiveServerTestCase):
         # the following lets us choose (by setting an environment variable)
         # whether we want a LiveServerTestCase-provided server instance or
         # if we want to use a real server
-        staging_server = os.environ.get('SUPERLISTS_STAGING_SERVER')
-        if staging_server:
+        self.staging_server = os.environ.get('SUPERLISTS_STAGING_SERVER')
+        if self.staging_server:
             self.live_server_url = 'http://' + staging_server
 
     def tearDown(self):
