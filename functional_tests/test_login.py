@@ -18,7 +18,7 @@ class LoginTest(FunctionalTest):
     # helper methods
     # --------------
     def wait_for_email(self, test_email_to_address, subject):
-        if not self.superlists_staging_server:  # test server
+        if not self.staging_server:  # test server
             email = mail.outbox[0]
             self.assertIn(test_email_to_address, email.to)
             self.assertEqual(email.subject, subject)
@@ -29,7 +29,7 @@ class LoginTest(FunctionalTest):
             start = time.time()
             inbox = poplib.POP3_SSL('mail.gandi.net')
             try:
-                inbox.user(test_email)
+                inbox.user(test_email_to_address)
                 inbox.pass_(os.environ['RECIPIENT_EMAIL_PASSWORD'])
                 while time.time() - start < 60:
                     # get 10 newest messages
