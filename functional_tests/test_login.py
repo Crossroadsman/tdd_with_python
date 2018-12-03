@@ -10,7 +10,6 @@ from selenium.webdriver.common.keys import Keys
 from .base import FunctionalTest
 
 
-TEST_EMAIL = 'alex@koumparos.ca'
 SUBJECT = 'Your login link for Superlists'
 
 
@@ -61,9 +60,14 @@ class LoginTest(FunctionalTest):
         # (`find_element_by_name` returns the html element with the 
         # specified `name` attribute (i.e., not <email>, but
         # <element name='email'>))
+        if self.staging_server:  # Live server
+            test_email = 'koumparos@koumparos.ca'
+        else:
+            test_email = 'alice@example.com'
+
         self.browser.get(self.live_server_url)
         email_element = self.browser.find_element_by_name('email')
-        email_element.send_keys(TEST_EMAIL)
+        email_element.send_keys(test_email)
         email_element.send_keys(Keys.ENTER)
 
         # A message appears telling her that an email has been sent
@@ -76,17 +80,15 @@ class LoginTest(FunctionalTest):
         # She checks her email and finds a message
         # (For now, we can use Django's mail outbox as a proxy for emails
         # that were actually delivered).
-        email = mail.outbox[0]
-        self.assertIn(TEST_EMAIL, email.to)
-        self.assertEqual(email.subject, SUBJECT)
+        email_body = self.wait_for_email(test_email, SUBJECT)
 
         # It has a url link in it
-        self.assertIn('Use this link to log in', email.body)
+        self.assertIn('Use this link to log in', email_body)
         url_search = re.search(r'https?://.+/.+$',
-                               email.body,
+                               email_body,
                                flags=re.IGNORECASE)
         if not url_search:
-            self.fail(f'Could not find url in email body:\n{email.body}')
+            self.fail(f'Could not find url in email body:\n{email_body}')
         url = url_search.group(0)
         self.assertIn(self.live_server_url, url)
 
@@ -94,11 +96,11 @@ class LoginTest(FunctionalTest):
         self.browser.get(url)
 
         # She is logged in
-        self.wait_to_be_logged_in(email=TEST_EMAIL)
+        self.wait_to_be_logged_in(email=test_email)
 
         # Now she logs out
         self.browser.find_element_by_link_text('Log Out').click()
 
         # She is logged out
-        self.wait_to_be_logged_out(email=TEST_EMAIL)
+        self.wait_to_be_logged_out(email=test_email)
 
