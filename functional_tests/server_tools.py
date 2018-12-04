@@ -13,8 +13,9 @@ def _get_server_env_vars(host):
 
 def reset_database(host):
     manage_dot_py = _get_manage_dot_py(host)
+    print(f'manage.py: {manage_dot_py}')
     with settings(host_string=f'alex@{host}'):
-        run(r'{manage_dot_py} flush --noinput')
+        run(f'{manage_dot_py} flush --noinput')
 
 
 def create_session_on_server(host, email):
