@@ -1,6 +1,9 @@
 import os
 import time
 
+from .server_tools import reset_database
+
+
 """django.test.LiveServerTestCase
                ------------------
 https://docs.djangoproject.com/en/2.1/topics/testing/tools/#django.test.LiveServerTestCase
@@ -73,8 +76,8 @@ To enable firefox to run on a headless Ubuntu server we need to:
 """Constants
    ---------
 """
-MAX_WAIT = 3  # can change if tests frequently timeout
-WAIT_TICK = 0.5  # change if tests frequently timeout
+MAX_WAIT = 3  # can change if tests frequently timeout (initial 3)
+WAIT_TICK = 0.5  # change if tests frequently timeout (inital 0.5)
 
 
 """Base Test Class
@@ -91,7 +94,8 @@ class FunctionalTest(StaticLiveServerTestCase):
         # if we want to use a real server
         self.staging_server = os.environ.get('SUPERLISTS_STAGING_SERVER')
         if self.staging_server:
-            self.live_server_url = 'http://' + staging_server
+            self.live_server_url = 'http://' + self.staging_server
+            reset_database(self.staging_server)
 
     def tearDown(self):
         self.browser.quit()
