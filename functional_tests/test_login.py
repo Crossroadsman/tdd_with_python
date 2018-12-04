@@ -61,7 +61,7 @@ class LoginTest(FunctionalTest):
         # specified `name` attribute (i.e., not <email>, but
         # <element name='email'>))
         if self.staging_server:  # Live server
-            test_email = 'koumparos@koumparos.ca'
+            test_email = os.environ['RECIPIENT_EMAIL_USER']
         else:
             test_email = 'alice@example.com'
 
