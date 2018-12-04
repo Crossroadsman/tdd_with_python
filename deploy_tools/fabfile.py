@@ -64,14 +64,20 @@ def _create_or_update_dotenv():
 
     # `append` conditionally adds a line to a file, if that line is not
     # already in the file
-    append('.env', 'DJANGO_DEBUG_FALSE=y')
-    append('.env', f'SITENAME={env.host}')
     current_contents = run('cat .env')
     if 'DJANGO_SECRET_KEY' not in current_contents:
         new_secret = ''.join(random.SystemRandom().choices(
             'abcdefghijklmnopqrstuvwxyz0123456789', k=50
         ))
         append('.env', f'DJANGO_SECRET_KEY={new_secret}')
+    env_vars = {
+        'DJANGO_DEBUG_FALSE': 'y',
+        'SITENAME': f'{env.host}',
+        'EMAIL_PASSWORD': os.environ['EMAIL_PASSWORD'],
+        'EMAIL_USER': os.environ['EMAIL_USER'],
+    }
+    for key, value in env_vars.items():
+        append('.env', f'{key}={value}')
 
 
 def _update_static_files():
