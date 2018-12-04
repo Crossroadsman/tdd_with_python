@@ -1,3 +1,4 @@
+import os
 import sys
 import random
 from fabric.contrib.files import append, exists
