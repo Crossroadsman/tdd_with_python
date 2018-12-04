@@ -1,6 +1,8 @@
 import os
 import time
 
+from selenium.webdriver.common.keys import Keys
+
 from .server_tools import reset_database
 
 
@@ -143,4 +145,17 @@ class FunctionalTest(StaticLiveServerTestCase):
 
     def get_item_input_box(self):
         return self.browser.find_element_by_id('id_text')
+
+    def add_list_item(self, item_text):
+        num_rows_before = len(self.browser.find_elements_by_css_selector(
+            '#id_list_table tr'
+        ))
+        self.get_item_input_box().send_keys(item_text)
+        self.get_item_input_box().send_keys(Keys.ENTER)
+        new_item_number = num_rows_before + 1
+        self.wait_for_row_in_list_table(
+            f'{new_item_number}: {item_text}'
+        )
+
+    
 
