@@ -1,5 +1,7 @@
 from django.shortcuts import redirect, render
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from lists.models import Item, List
 from lists.forms import ItemForm, ExistingListItemForm
@@ -26,11 +28,14 @@ def view_list(request, list_id):
     }
     return render(request, template, context)
 
+
 def new_list(request):
     """Create a new list"""
     form = ItemForm(data=request.POST)
     if form.is_valid():
-        list_ = List.objects.create()
+        list_ = List()
+        list_.owner = request.user
+        list_.save()
         form.save(for_list=list_)
         return redirect(list_)
     else:
@@ -38,3 +43,9 @@ def new_list(request):
         context = {'form': form,}
         return render(request, template, context)
 
+
+def my_lists(request, email):
+    owner = User.objects.get(email=email)
+    template = 'lists/my_lists.html'
+    context = {'owner': owner}
+    return render(request, template, context)
