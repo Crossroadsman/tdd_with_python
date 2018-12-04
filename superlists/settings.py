@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'lists',
     'accounts',
+    'functional_tests',  # needed to make management commands visible
 ]
 
 MIDDLEWARE = [
