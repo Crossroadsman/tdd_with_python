@@ -1,9 +1,12 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from lists.models import Item, List
-from lists.forms import ItemForm, ExistingListItemForm, ERROR_MESSAGES
+from lists.forms import (
+    ERROR_MESSAGES,
+    ItemForm, NewListForm, ExistingListItemForm
+)
 
 
 class ItemFormTest(TestCase):
@@ -35,59 +38,43 @@ class ItemFormTest(TestCase):
 class NewListFormTest(unittest.TestCase):
 
     # Using our collaboration approach, the models that the form
-    # interacts with (List and Item) are collaborators, so we mock them
-    #
-    # the method signature needs to have the mocks injected in the reverse
-    # order to which they are patched.
-    @patch('lists.forms.List')
-    @patch('lists.forms.Item')
-    def test_save_creates_new_list_and_item_from_POST_data(
-        self, mockItem, mockList
+    # interacts with (List and Item) are collaborators, so we could mock
+    # them. However, because we are moving the actual heavy lifting into
+    # a single helper method on List, we can just mock that one method:
+    @patch('lists.forms.List.create_new')
+    def test_save_creates_new_list_from_POST_if_user_not_authenticated(
+        self, mock_List_create_new
     ):
-        # the item instance that the form will have access to is the return
-        # value of the mocked Item class (thus we will be able to make
-        # assertions on the attributes set on the mock class by the form,
-        # e.g., `mock_item.text`). The same applies, mutatis mutandis, for
-        # the list instance.
-        mock_item = mockItem.return_value
-        mock_list = mockList.return_value
-        user = Mock()
+        user = Mock(is_authenticated=False)
         form = NewListForm(data={'text': 'new item text'})
         # we need to call `is_valid()` so that the form populates the
         # `.cleaned_data` dictionary where it stores validated data
         form.is_valid()
 
-        # without the following method, this test would only confirm that 
-        # we create a value for `text` and `list`. It wouldn't test the 
-        # sequence (i.e., that we create these before saving the model 
-        # objects and not the other way round).
-        # Note that this would be trivial to prove if we weren't using
-        # mocks, so we need to be alert to things that would be obvious
-        # in a fully-implemented version of our code but aren't
-        # certain while we are using test doubles.
-        # One approach to address this when using mocks is to create
-        # a function to act as a spy and attach it to the mocked object
-        # representing the real object's method we want to spy on (in this
-        # case `save`)
-        def check_item_text_and_list():
-            self.assertEqual(mock_item.text, 'new item text')
-            self.assertEqual(mock_item.list, mock_list)
-            self.assertTrue(mock_list.save.called)
-        # note that the sequence of code is significant when using the spy:
-        # we need to assign the side effect before calling the function
-        # that would trigger the side effect (this might seem too obvious
-        # to mention, but it is very easy to overlook)
-        mock_item.save.side_effect = check_item_text_and_list
+        form.save(owner=user)
+
+        # (assert_called_once and assert_called_once_with are assertion
+        # methods provided with Mock:
+        # https://docs.python.org/3/library/unittest.mock.html#unittest.mock.Mock.assert_called_with
+        # )
+        mock_List_create_new.assert_called_once_with(
+            first_item_text='new item text'
+        )
+
+    @patch('lists.forms.List.create_new')
+    def test_save_creates_new_list_and_owner_from_POST_if_user_authenticated(
+        self, mock_List_create_new
+    ):
+        user = Mock(is_authenticated=True)
+        form = NewListForm(data={'text': 'new item text'})
+        form.is_valid()
 
         form.save(owner=user)
 
-        # We've moved the real assertions (that item has text and a list)
-        # into the spy. However, the spy will only run (and thus the
-        # assertions will only be fired) if the mocked method we attached
-        # the spy to actually gets called.
-        # Thus we also need the following assert to ensure that the spied
-        # method was called:
-        self.assertTrue(mock_item.save.called)
+        mock_List_create_new.assert_called_once_with(
+            first_item_text='new item text',
+            owner=user
+        )
 
 
 class ExistingListItemFormTest(TestCase):
