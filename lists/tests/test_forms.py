@@ -21,16 +21,8 @@ class ItemFormTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors['text'], [ERROR_MESSAGES['blank item']])
 
-    def test_form_save_handles_saving_to_a_list(self):
-        """Ensure that the form's own save() method is being used to
-        handle the save mechanics"""
-        list_ = List.objects.create()
-        form = ItemForm(data={'text': 'some example text'})
-        new_item = form.save(for_list=list_)
-
-        self.assertEqual(new_item, Item.objects.first())
-        self.assertEqual(new_item.text, 'some example text')
-        self.assertEqual(new_item.list, list_)
+    # we no longer need a test of ItemForm.save() because no code uses
+    # that method any more (and we are deleting our extended version)
 
 
 # like in test_views we are demonstrating isolation by only using the
