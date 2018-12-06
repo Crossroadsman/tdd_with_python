@@ -1,3 +1,7 @@
+import unittest
+from unittest.mock import patch, Mock
+
+from django.http import HttpRequest
 from django.test import TestCase
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
@@ -5,6 +9,7 @@ User = get_user_model()
 
 from lists.models import Item, List
 from lists.forms import ItemForm, ExistingListItemForm, ERROR_MESSAGES
+from lists.views import new_list
 
 
 class HomePageTest(TestCase):
@@ -157,7 +162,24 @@ class ListViewTest(TestCase):
         self.assertContains(response, 'name="text"')
 
 
-class NewListTest(TestCase):
+# note the distinction between 'integrated' test and 'integration test'
+#
+# Also, these tests are now strictly redundant since we've replaced the
+# code tested here, originally constructed in an inside-out fashion, with
+# code written outside-in, fully isolated and tested.
+# However, we noticed during the code rewrite that there were a couple of
+# times we missed subtle, implicit expectations between the layers that
+# our first isolated tests didn't catch, and were identified in the
+# integrated tests.
+# As such, there is some value to preserving some integrated tests to warn
+# us when we've made small mistakes in integrating layers. And using these
+# instead of relying purely on functional tests to preserve a quick
+# feedback cycle.
+# We've picked four of the old integrated tests to preserve, we selected
+# tests that do the most 'integration' jobs: they test the full stack, from
+# the request down to the database, and cover the most important use cases
+# of the view.
+class NewListViewIntegratedTest(TestCase):
 
     def setUp(self):
         self.item_text = 'A new list item'
@@ -171,65 +193,120 @@ class NewListTest(TestCase):
         self.client.post(self.post_url, data=self.post_data)
 
         self.assertEqual(Item.objects.count(), 1)
-        new_item = Item.objects.first()
-        self.assertEqual(new_item.text, self.item_text)
+        self.assertEqual(Item.objects.first().text,
+                         self.item_text
+        )
 
-    def test_redirects_to_list_view_after_valid_POST_request(self):
-        """Make sure the home page redirects after a POST"""
-
-        # self.client.post takes a `data` argument that contains a
-        # dictionary of the form data, where the key is the
-        # form's `name` attribute and the value is whatever we want
-        # to supply as a value to that form input.
-        response = self.client.post(self.post_url, data=self.post_data)
-        
-        # We are following the principle of always redirecting after a POST
-        # instead of doing two assertEquals, to check that the response.
-        # status_code is 302 and the redirect url is /lists/<list_id>/
-        # we can use assertRedirects:
-        new_list = List.objects.first()
-        self.assertRedirects(response, f'/lists/{new_list.id}/')
-
-    def test_invalid_POST_renders_home_page_template(self):
+    def test_invalid_POST_shows_errors_on_home_page_template(self):
         self.item_text = ''
         self.post_data = {'text': self.item_text}
-        response = self.client.post(self.post_url, self.post_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'lists/home.html')
-
-    def test_invalid_POST_shows_errors_on_home_page_templat(self):
-        self.item_text = ''
-        self.post_data = {'text': self.item_text}
-        response = self.client.post(self.post_url, self.post_data)
         expected_error = escape(ERROR_MESSAGES['blank item'])
+
+        response = self.client.post(self.post_url, data=self.post_data)
+
         self.assertContains(response, expected_error)
 
-    def test_invalid_POST_passes_form_to_template(self):
+    def test_invalid_POST_doesnt_save_to_db(self):
         self.item_text = ''
         self.post_data = {'text': self.item_text}
-        response = self.client.post(self.post_url, self.post_data)
-        self.assertIsInstance(response.context['form'], ItemForm)
 
-    def test_invalid_list_items_arent_saved(self):
-        self.item_text = ''
-        self.post_data = {'text': self.item_text}
-        self.client.post(self.post_url, self.post_data)
+        self.client.post(self.post_url, data=self.post_data)
+
         self.assertEqual(List.objects.count(), 0)
         self.assertEqual(Item.objects.count(), 0)
 
     def test_list_is_linked_to_owner_if_user_authenticated(self):
         user = User.objects.create(email='a@b.com')
-        # `force_login()` is the Django test suite's way of simulating the
-        # effect of logging a user into the site. It should be used in
-        # place of `login()` when a test requires a user be logged in and
-        # the details of how a user logged in aren't important.
-        self.client.force_login(user)
-        
-        self.client.post('/lists/new', data={'text': 'new item'})
-        list_ = List.objects.first()
 
+        # `force_login()` is the Django test system's way of simulating
+        # the effect of logging a user into the site. It should be used
+        # in place of `login()` when a test requires that a user be logged
+        # in but the details of how the user logged in aren't important.
+        self.client.force_login(user)
+        self.client.post(self.post_url, data=self.post_data)
+
+        list_ = List.objects.first()
         self.assertEqual(list_.owner, user)
 
+
+# Note that the Django TestCase class makes it too easy to write integrated
+# tests. To help force us to write 'pure' isolated unit tests, we'll use
+# only unittest.TestCase.
+#
+# NewListForm is going to be the key collaborator for our NewList view, so
+# we want to mock out that class and we want to do it at the TestCase's
+# class-level.
+#
+# we also mock out `redirect()` since it is also a collaborator in all of
+# our tests
+@patch('lists.views.redirect')
+@patch('lists.views.NewListForm')
+class NewListViewUnitTest(unittest.TestCase):
+
+    # Here we're building up a POST request by hand instead of using the 
+    # (integrated) Django Test Client
+    def setUp(self):
+        self.request = HttpRequest()
+        self.request.POST['text'] = 'new list item'
+        self.request.user = Mock()
+
+    # In this test we check that the view initialises its collaborator
+    # (NewListForm) with the correct initial data: the data from the request
+    def test_POST_passes_data_to_NewListForm(
+        self, mockNewListForm, mock_redirect
+    ):
+        new_list(self.request)
+
+        mockNewListForm.assert_called_once_with(data=self.request.POST)
+
+    def test_form_saves_with_owner_if_form_valid(
+        self, mockNewListForm, mock_redirect
+    ):
+        mock_form = mockNewListForm.return_value
+        mock_form.is_valid.return_value = True
+
+        new_list(self.request)
+
+        mock_form.save.assert_called_once_with(owner=self.request.user)
+
+    def test_redirects_to_object_returned_by_form_if_form_valid(
+        self, mockNewListForm, mock_redirect
+    ):
+        mock_form = mockNewListForm.return_value
+        mock_form.is_valid.return_value = True
+
+        response = new_list(self.request)
+ 
+        # we check that the response from the view is return value of
+        # the `redirect` function.
+        self.assertEqual(response, mock_redirect.return_value)
+        # and we check that the `redirect` function was called with
+        # the object that the form returns on `save()`
+        mock_redirect.assert_called_once_with(mock_form.save.return_value)
+
+    @patch('lists.views.render')
+    def test_renders_home_template_and_form_if_form_invalid(
+        self, mock_render, mockNewListForm, mock_redirect
+    ):
+        mock_form = mockNewListForm.return_value
+        mock_form.is_valid.return_value = False
+
+        response = new_list(self.request)
+
+        self.assertEqual(response, mock_render.return_value)
+        mock_render.assert_called_once_with(
+            self.request, 'lists/home.html', {'form': mock_form}
+        )
+
+    def test_does_not_save_if_form_invalid(
+        self, mockNewListForm, mock_redirect
+    ):
+        mock_form = mockNewListForm.return_value
+        mock_form.is_valid.return_value = False
+
+        new_list(self.request)
+
+        self.assertFalse(mock_form.save.called)
 
 
 class MyListsTests(TestCase):
