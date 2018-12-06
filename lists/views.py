@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 from lists.models import Item, List
-from lists.forms import ItemForm, ExistingListItemForm
+from lists.forms import ItemForm, ExistingListItemForm, NewListForm
 
 
 def home_page(request):
@@ -42,6 +42,18 @@ def new_list(request):
         template = 'lists/home.html'
         context = {'form': form,}
         return render(request, template, context)
+
+
+# This will eventually replace `new_list()`
+def new_list2(request):
+    """Create a new list"""
+    form = NewListForm(data=request.POST)
+    if form.is_valid():
+        list_ = form.save(owner=request.user)
+        return redirect(list_)
+    template = 'lists/home.html'
+    context = {'form': form}
+    return render(request, template, context)
 
 
 def my_lists(request, email):

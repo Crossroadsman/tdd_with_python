@@ -50,6 +50,11 @@ class ItemForm(forms.models.ModelForm):
             'text': {'required': ERROR_MESSAGES['blank item']},
         }
 
+
+class NewListForm():
+    pass
+
+
 class ExistingListItemForm(ItemForm):
     
     def __init__(self, for_list, *args, **kwargs):
