@@ -75,10 +75,7 @@ class ItemValidationTest(FunctionalTest):
         # Alice goes to the home page and starts a new list
         self.browser.get(self.live_server_url)
         input_text = 'Buy wellies'
-        input_box = self.get_item_input_box()
-        input_box.send_keys(input_text)
-        input_box.send_keys(Keys.ENTER)
-        self.wait_for_row_in_list_table(f'1: {input_text}')
+        self.add_list_item(input_text)
 
         # She accidentally tries to enter a duplicate item
         input_box = self.get_item_input_box()
@@ -96,10 +93,7 @@ class ItemValidationTest(FunctionalTest):
         # Alice starts a list and causes a validation error
         self.browser.get(self.live_server_url)
         item_text = 'Banter too thick'
-        input_box = self.get_item_input_box()
-        input_box.send_keys(item_text)
-        input_box.send_keys(Keys.ENTER)
-        self.wait_for_row_in_list_table(f'1: {item_text}')
+        self.add_list_item(item_text)
 
         input_box = self.get_item_input_box()
         input_box.send_keys(item_text)
@@ -123,10 +117,7 @@ class ItemValidationTest(FunctionalTest):
         # Now, Bob starts a list and causes a validation error
         self.browser.get(self.live_server_url)
         item_text = 'Labrador puppies'
-        input_box = self.get_item_input_box()
-        input_box.send_keys(item_text)
-        input_box.send_keys(Keys.ENTER)
-        self.wait_for_row_in_list_table(f'1: {item_text}')
+        self.add_list_item(item_text)
 
         input_box = self.get_item_input_box()
         input_box.send_keys(item_text)

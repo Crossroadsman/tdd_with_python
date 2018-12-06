@@ -1,5 +1,9 @@
 from django.test import TestCase
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from lists.models import Item, List
 
@@ -76,4 +80,43 @@ class ListModelTest(TestCase):
     def test_List_get_absolute_url(self):
         list_ = List.objects.create()
         self.assertEqual(list_.get_absolute_url(), f'/lists/{list_.id}/')
+
+    def test_create_new_creates_list_and_first_item(self):
+        List.create_new(first_item_text='new item text')
+
+        created_item = Item.objects.first()
+        created_list = List.objects.first()
+
+        self.assertEqual(created_item.text, 'new item text')
+        self.assertEqual(created_item.list, created_list)
+
+    def test_create_new_saves_owner_if_supplied(self):
+        user = User.objects.create()
+
+        List.create_new(first_item_text='new item text', owner=user)
+
+        self.assertEqual(List.objects.first().owner,
+                         user)
+
+    def test_create_new_returns_list_object(self):
+        result = List.create_new(first_item_text='new item text')
+
+        self.assertEqual(
+            result,
+            List.objects.first()
+        )
+
+    def test_list_can_have_owner(self):
+        List(owner=User())  # should not raise
+
+    def test_list_owner_is_not_required(self):
+        # note no owner provided
+        List().full_clean()  # should not raise
+
+    def test_list_name_is_first_item_text(self):
+        list_ = List.objects.create()
+        Item.objects.create(list=list_, text='first item')
+        Item.objects.create(list=list_, text='second item')
+
+        self.assertEqual(list_.name, 'first item')
 

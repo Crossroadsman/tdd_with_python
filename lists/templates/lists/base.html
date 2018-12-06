@@ -26,6 +26,9 @@
       <nav class="navbar navbar-default" role="navigation">
         <a class="navbar-brand" href="/">Superlists</a>
         {% if user.email %} <!-- user is logged-in -->
+          <ul class="nav navbar-nav navbar-left">
+            <li><a href="{% url 'my_lists' user.email %}">My Lists</a></li>
+          </ul>
           <ul class="nav navbar-nav navbar-right">
             <li class="navbar=text">Logged in as {{ user.email }}</li>
             <li><a href="{% url 'logout' %}">Log Out</a></li>
@@ -67,15 +70,17 @@
         <div class="col-md-6 offset-md-3 jumbotron">
           <div class="text-center">
             <h1>{% block header_text %}{% endblock %}</h1>
-            <form method="POST" {% block form_action %}{% endblock %}>
-              {% csrf_token %}
-              {% if form.errors %}
-                <div class="form-group has-error">
-                  <span class="help-block">{{ form.text.errors }}</span>
-                </div>
-              {% endif %}
-              {{ form.text }}
-            </form>
+            {% block list_form %}
+              <form method="POST" {% block form_action %}{% endblock %}>
+                {% csrf_token %}
+                {% if form.errors %}
+                  <div class="form-group has-error">
+                    <span class="help-block">{{ form.text.errors }}</span>
+                  </div>
+                {% endif %}
+                {{ form.text }}
+              </form>
+            {% endblock list_form %}
           </div><!-- text-center -->
         </div><!-- col-md-6 offset-md-3 -->
       </div><!-- row -->
@@ -84,6 +89,13 @@
         <div class="col-md-6 offset-md-3">
           {% block table %}
           {% endblock table %}
+        </div><!-- col-md-6 offset-md-3 -->
+      </div><!-- row -->
+
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+          {% block extra_content %}
+          {% endblock extra_content %}
         </div><!-- col-md-6 offset-md-3 -->
       </div><!-- row -->
     </div><!-- container -->
