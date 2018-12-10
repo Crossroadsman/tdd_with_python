@@ -1,5 +1,6 @@
 import os
 import time
+from datetime import datetime
 
 from selenium.webdriver.common.keys import Keys
 
@@ -80,6 +81,10 @@ To enable firefox to run on a headless Ubuntu server we need to:
 """
 MAX_WAIT = 3  # can change if tests frequently timeout (initial 3)
 WAIT_TICK = 0.5  # change if tests frequently timeout (inital 0.5)
+SCREEN_DUMP_LOCATION = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'screendumps'
+)
 
 
 """Base Test Class
@@ -100,7 +105,19 @@ class FunctionalTest(StaticLiveServerTestCase):
             reset_database(self.staging_server)
 
     def tearDown(self):
+
+        # If a FT fails, indicated by _outcome.errors being non-empty,
+        # we'll save screenshots and html
+        if self._test_has_failed():
+            if not os.path.exists(SCREEN_DUMP_LOCATION):
+                os.makedirs(SCREEN_DUMP_LOCATION)
+            for i, handle in enumerate(self.browser.window_handles):
+                self._windowid = i
+                self.browser.switch_to_window(handle)
+                self.take_screenshot()
+                self.dump_html()
         self.browser.quit()
+        super().tearDown()
 
     # decorator methods
     # -----------------
@@ -157,5 +174,27 @@ class FunctionalTest(StaticLiveServerTestCase):
             f'{new_item_number}: {item_text}'
         )
 
-    
+    def _test_has_failed(self):
+        return any(error for (method, error) in self._outcome.errors)
+
+    def take_screenshot(self):
+        filename = self._get_filename() + '.png'
+        print('screenshotting to', filename)
+        self.browser.get_screenshot_as_file(filename)
+
+    def dump_html(self):
+        filename = self._get_filename() + '.html'
+        print('dumping page to', filename)
+        with open(filename, 'w') as fh:
+            fh.write(self.browser.page_source)
+
+    def _get_filename(self):
+        timestamp = datetime.now().isoformat().replace(':', '.')[:19]
+        return '{dir}/{classname}.{method}-window{wid}-{timestamp}'.format(
+            dir=SCREEN_DUMP_LOCATION,
+            classname=self.__class__.__name__,
+            method=self._testMethodName,
+            wid=self._windowid,
+            timestamp=timestamp
+        )
 

@@ -108,3 +108,7 @@ venv.bak/
 
 # Superlists
 static_root/
+
+# Test output
+functional_tests/screendumps
+
