@@ -4,7 +4,12 @@ from datetime import datetime
 
 from selenium.webdriver.common.keys import Keys
 
-from .server_tools import reset_database
+from django.conf import settings
+
+from .server_tools import reset_database, create_session_on_server
+from .management.commands.create_session import (
+    create_pre_authenticated_session
+)
 
 
 """django.test.LiveServerTestCase
@@ -187,6 +192,32 @@ class FunctionalTest(StaticLiveServerTestCase):
         print('dumping page to', filename)
         with open(filename, 'w') as fh:
             fh.write(self.browser.page_source)
+
+    """We already have passing integration tests that validate the whole
+    email and login (and implicitly, session-creation) process, thus for
+    other functional tests that need a user to be logged-in but aren't
+    testing the log-in system, we can skip that process and instead use
+    a function to generate a pre-authenticated session.
+    """
+    def create_pre_authenticated_session(self, email):
+
+        # first, create a session (and get its session key)
+        if self.staging_server:  # running on a live remote server
+            session_key = create_session_on_server(self.staging_server,
+                                                   email)
+        else:  # running locally
+            session_key = create_pre_authenticated_session(email)
+
+        # next, send a cookie to the client in a HttpResponse.
+        # To send a response we need the client to send a request (i.e.,
+        # visit the domain) and 404 pages load fast so...
+        self.browser.get(self.live_server_url + "/404_made_up_url/")
+        self.browser.add_cookie(dict(
+            name=settings.SESSION_COOKIE_NAME,
+            value=session_key,
+            path='/'
+        ))
+
 
     def _get_filename(self):
         timestamp = datetime.now().isoformat().replace(':', '.')[:19]
