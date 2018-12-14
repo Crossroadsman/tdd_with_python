@@ -90,6 +90,24 @@ SCREEN_DUMP_LOCATION = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'screendumps'
 )
+"""Decorator Class
+   ---------------
+"""
+class FTDecorators():
+    
+    @staticmethod
+    def wait(fn):
+        def modified_fn(*args, **kwargs):
+            start_time = time.time()
+            while True:
+                try:
+                    return fn(*args, **kwargs)
+                except (AssertionError, WebDriverException) as e:
+                    if time.time() - start_time > MAX_WAIT:
+                        raise e
+                    time.sleep(WAIT_TICK)
+        return modified_fn
+
 
 
 """Base Test Class
@@ -124,33 +142,19 @@ class FunctionalTest(StaticLiveServerTestCase):
         self.browser.quit()
         super().tearDown()
 
-    # decorator methods
-    # -----------------
-    def wait(fn):
-        def modified_fn(*args, **kwargs):
-            start_time = time.time()
-            while True:
-                try:
-                    return fn(*args, **kwargs)
-                except (AssertionError, WebDriverException) as e:
-                    if time.time() - start_time > MAX_WAIT:
-                        raise e
-                    time.sleep(WAIT_TICK)
-        return modified_fn
-
     # helper methods
     # --------------
-    @wait
+    @FTDecorators.wait
     def wait_for_row_in_list_table(self, row_text):
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
         self.assertIn(row_text, [row.text for row in rows])
 
-    @wait
+    @FTDecorators.wait
     def wait_for(self, fn):
         return fn()
 
-    @wait
+    @FTDecorators.wait
     def wait_to_be_logged_in(self, email):
         # we know that if the page has  a `Log Out` link, the user must be
         # logged in.

@@ -1,6 +1,8 @@
 from selenium import webdriver
 
 from .base import FunctionalTest
+from .list_page import ListPage
+from .my_lists_page import MyListsPage
 
 
 class SharingTest(FunctionalTest):
@@ -49,14 +51,42 @@ class SharingTest(FunctionalTest):
         # Alice goes to the home page and starts a list
         self.browser = alice_browser
         self.browser.get(self.live_server_url)
-        self.add_list_item('Get help')
+        list_page = ListPage(self).add_list_item('Get help')
 
         # She notices a 'share this list' option
-        share_box = self.browser.find_element_by_css_selector(
-            'input[name="sharee"]'
-        )
+        share_box = list_page.get_share_box()
 
         self.assertEqual(
             share_box.get_attribute('placeholder'),
             'your-friend@example.com'
         )
+
+        # She shares her list with Charon
+        list_page.share_list_with('charon@example.com')
+
+        # She observes that the page has been updated to say that it's
+        # shared with Charon.
+        self.fail("implement me!")
+
+        # Charon now goes to the lists page with his browser
+        self.browser = oni_browser
+        my_lists_page = MyListsPage(self)
+        my_lists_page.go_to_my_lists_page()
+
+        # He sees Alice's list in there:
+        my_lists_page.get_list_link('Get help').click()
+
+        # He is then taken to the list page for Alice's list. He can
+        # see that the list belongs to Alice
+        self.wait_for(lambda: self.assertEqual(
+            list_page.get_list_owner(),
+            'alice@example.com'
+        ))
+
+        # He adds an item to the list
+        list_page.add_list_item('Hi Alice!')
+
+        # When Alice refreshes the page, she sees Charon's addition
+        self.browser = alice_browser
+        self.browser.refresh()
+        list_page.wait_for_row_in_list_table('Hi Alice!', 2)

@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from .base import FunctionalTest
+from .my_lists_page import MyListsPage
 
 
 class MyListsTest(FunctionalTest):
@@ -18,7 +19,7 @@ class MyListsTest(FunctionalTest):
         first_list_url = self.browser.current_url
 
         # She notices a "My lists" link, for the first time, and clicks it
-        self.browser.find_element_by_link_text('My Lists').click()
+        my_lists_page = MyListsPage(self).go_to_my_lists_page()
 
         # She sees that her new list is in there, named according to its
         # first list item
@@ -29,7 +30,7 @@ class MyListsTest(FunctionalTest):
         )
 
         # She clicks the link represented by her first list item
-        self.browser.find_element_by_link_text('Reticulate splines').click()
+        my_lists_page.get_list_link('Reticulate splines').click()
 
         # And notices that it takes her to the full list
         self.wait_for(
@@ -44,18 +45,18 @@ class MyListsTest(FunctionalTest):
         second_list_url = self.browser.current_url
 
         # Now, under 'my lists', her new list appears
-        self.browser.find_element_by_link_text('My Lists').click()
+        my_lists_page = MyListsPage(self).go_to_my_lists_page()
         self.wait_for(
             lambda: self.browser.find_element_by_link_text('Click cows')
         )
-        self.browser.find_element_by_link_text('Click cows').click()
+        my_lists_page.get_list_link('Click cows').click()
         self.wait_for(
             lambda: self.assertEqual(self.browser.current_url,
                                      second_list_url)
         )
 
         # She logs out. The 'My Lists' option disappears
-        self.browser.find_element_by_link_text('Log Out').click()
+        my_lists_page.get_logout_link().click()
         self.wait_for(
             lambda: self.assertEqual(
                 self.browser.find_elements_by_link_text('My Lists'),
