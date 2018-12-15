@@ -15,4 +15,43 @@
       </tr>
     {% endfor %}{# item in items #}
   </table>
+
+  {% if list.owner %}
+    <p>List owner: <span id="id_list_owner">{{ list.owner.email }}</span><p>
+  {% endif %}
 {% endblock table %}
+
+{% block share %}
+  <div class="row">
+    <div class="col-md-8 offset-md-3">
+      <div>
+        <h2>Share Your List:</h2>
+        <form method="POST" action="{% url 'share_list' list.id %}">
+          <input type="email" 
+                 id="sharee" 
+                 name="sharee"
+
+                 placeholder="your-friend@example.com">
+          {% csrf_token %}
+        </form>
+      </div> <!-- enclosing form -->
+      <div>
+        <h2>List Shared With:</h2>
+        {% if list.sharees.count > 0 %}
+          <ul>
+            {% for sharee in list.sharees %}
+              {% if sharee.user %}
+                <li class="list-sharee"><a href="#">{{ sharee.email }}</a></li>
+              {% else %}
+                <li class="list-sharee">{{ sharee.email }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        {% else %}{# no sharees #}
+          <p>No-one Yet!</p>
+        {% endif %}
+      </div> <!-- list of shared -->
+    </div> <!-- col-md-8 -->
+  </div> <!-- row -->
+{% endblock share %}
+

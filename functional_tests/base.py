@@ -4,7 +4,12 @@ from datetime import datetime
 
 from selenium.webdriver.common.keys import Keys
 
-from .server_tools import reset_database
+from django.conf import settings
+
+from .server_tools import reset_database, create_session_on_server
+from .management.commands.create_session import (
+    create_pre_authenticated_session
+)
 
 
 """django.test.LiveServerTestCase
@@ -86,6 +91,25 @@ SCREEN_DUMP_LOCATION = os.path.join(
     'screendumps'
 )
 
+"""Decorator Class
+   ---------------
+"""
+class FTDecorators():
+    
+    @staticmethod
+    def wait(fn):
+        def modified_fn(*args, **kwargs):
+            start_time = time.time()
+            while True:
+                try:
+                    return fn(*args, **kwargs)
+                except (AssertionError, WebDriverException) as e:
+                    if time.time() - start_time > MAX_WAIT:
+                        raise e
+                    time.sleep(WAIT_TICK)
+        return modified_fn
+
+
 
 """Base Test Class
    ---------------
@@ -119,33 +143,19 @@ class FunctionalTest(StaticLiveServerTestCase):
         self.browser.quit()
         super().tearDown()
 
-    # decorator methods
-    # -----------------
-    def wait(fn):
-        def modified_fn(*args, **kwargs):
-            start_time = time.time()
-            while True:
-                try:
-                    return fn(*args, **kwargs)
-                except (AssertionError, WebDriverException) as e:
-                    if time.time() - start_time > MAX_WAIT:
-                        raise e
-                    time.sleep(WAIT_TICK)
-        return modified_fn
-
     # helper methods
     # --------------
-    @wait
+    @FTDecorators.wait
     def wait_for_row_in_list_table(self, row_text):
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
         self.assertIn(row_text, [row.text for row in rows])
 
-    @wait
+    @FTDecorators.wait
     def wait_for(self, fn):
         return fn()
 
-    @wait
+    @FTDecorators.wait
     def wait_to_be_logged_in(self, email):
         # we know that if the page has  a `Log Out` link, the user must be
         # logged in.
@@ -187,6 +197,32 @@ class FunctionalTest(StaticLiveServerTestCase):
         print('dumping page to', filename)
         with open(filename, 'w') as fh:
             fh.write(self.browser.page_source)
+
+    """We already have passing integration tests that validate the whole
+    email and login (and implicitly, session-creation) process, thus for
+    other functional tests that need a user to be logged-in but aren't
+    testing the log-in system, we can skip that process and instead use
+    a function to generate a pre-authenticated session.
+    """
+    def create_pre_authenticated_session(self, email):
+
+        # first, create a session (and get its session key)
+        if self.staging_server:  # running on a live remote server
+            session_key = create_session_on_server(self.staging_server,
+                                                   email)
+        else:  # running locally
+            session_key = create_pre_authenticated_session(email)
+
+        # next, send a cookie to the client in a HttpResponse.
+        # To send a response we need the client to send a request (i.e.,
+        # visit the domain) and 404 pages load fast so...
+        self.browser.get(self.live_server_url + "/404_made_up_url/")
+        self.browser.add_cookie(dict(
+            name=settings.SESSION_COOKIE_NAME,
+            value=session_key,
+            path='/'
+        ))
+
 
     def _get_filename(self):
         timestamp = datetime.now().isoformat().replace(':', '.')[:19]
