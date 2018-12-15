@@ -120,3 +120,14 @@ class ListModelTest(TestCase):
 
         self.assertEqual(list_.name, 'first item')
 
+    def test_list_can_be_shared(self):
+        list_ = List.objects.create()
+        sharee = 'sharee@e.com'
+
+        list_.share(sharee)
+
+        self.assertIn(
+            sharee,
+            list_.sharees.values_list('email', flat=True)
+        )
+

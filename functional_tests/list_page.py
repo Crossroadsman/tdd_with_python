@@ -14,6 +14,13 @@ class ListPage():
         rows = self.get_table_rows()
         self.test.assertIn(expected_row_text, [row.text for row in rows])
 
+    @FTDecorators.wait
+    def wait_for_sharee_in_sharees_list(self, email):
+        self.test.assertIn(
+            email,
+            [item.text for item in self.get_sharees_list()]
+        )
+
     def get_table_rows(self):
         return self.test.browser.find_elements_by_css_selector(
             '#id_list_table tr'
@@ -48,8 +55,4 @@ class ListPage():
     def share_list_with(self, email):
         self.get_share_box().send_keys(email)
         self.get_share_box().send_keys(Keys.ENTER)
-        self.test.wait_for(lambda: self.test.assertIn(
-            email,
-            [item.text for item in self.get_sharees_list()]
-        ))
         return self

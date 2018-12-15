@@ -66,10 +66,10 @@ class SharingTest(FunctionalTest):
 
         # She observes that the page has been updated to say that it's
         # shared with Charon.
-        self.fail("implement me!")
+        list_page.wait_for_sharee_in_sharees_list('charon@example.com')
 
         # Charon now goes to the lists page with his browser
-        self.browser = oni_browser
+        self.browser = charon_browser
         my_lists_page = MyListsPage(self)
         my_lists_page.go_to_my_lists_page()
 

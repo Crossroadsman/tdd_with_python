@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-from lists.models import Item, List
+from lists.models import Item, List, ListSharee
 from lists.forms import ItemForm, ExistingListItemForm, NewListForm
 
 
@@ -42,7 +42,22 @@ def new_list(request):
 
 def my_lists(request, email):
     owner = User.objects.get(email=email)
+
+    # see https://docs.djangoproject.com/en/2.1/ref/models/querysets/#select-related
+    lists_shared_with_owner = set()
+    for listsharee in ListSharee.objects.filter(email=email).select_related('todolist'):
+        lists_shared_with_owner.add(listsharee.todolist)
+
     template = 'lists/my_lists.html'
-    context = {'owner': owner}
+    context = {'owner': owner,
+               'shared_lists': lists_shared_with_owner}
     return render(request, template, context)
 
+
+def share_list(request, list_id):
+    list_ = List.objects.get(pk=list_id)
+    email = request.POST['sharee']
+    list_.share(email)
+
+    sharees = list_.sharees
+    return redirect(list_)

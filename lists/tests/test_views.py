@@ -92,7 +92,7 @@ class ListViewTest(TestCase):
         self.assertNotContains(response, 'other item 1')
         self.assertNotContains(response, 'other item 2')
 
-    def test_passes_correct_list_to_template(self):
+    def test_view_passes_correct_list_to_template(self):
         other_list = List.objects.create()
         correct_list = List.objects.create()
         response = self.client.get(f'/lists/{correct_list.id}/')
@@ -101,7 +101,7 @@ class ListViewTest(TestCase):
         # response object for us, to help with testing)
         self.assertEqual(response.context['list'], correct_list)
 
-    def test_can_save_a_POST_request_to_existing_list(self):
+    def test_can_save_an_item_POST_to_existing_list(self):
         other_list = List.objects.create()
         correct_list = List.objects.create()
 
@@ -115,7 +115,7 @@ class ListViewTest(TestCase):
         self.assertEqual(new_item.text, 'A new item for an existing list')
         self.assertEqual(new_item.list, correct_list)
 
-    def test_valid_POST_redirects_to_list_view(self):
+    def test_valid_item_POST_redirects_to_list_view(self):
         other_list = List.objects.create()
         correct_list = List.objects.create()
 
@@ -125,24 +125,24 @@ class ListViewTest(TestCase):
         )
         self.assertRedirects(response, f'/lists/{correct_list.id}/')
 
-    def test_invalid_POST_doesnt_save_to_db(self):
+    def test_invalid_item_POST_doesnt_save_to_db(self):
         self.post_invalid_input()
         self.assertEqual(Item.objects.count(), 0)
 
-    def test_invalid_POST_renders_list_template(self):
+    def test_invalid_item_POST_renders_list_template(self):
         response = self.post_invalid_input()
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'lists/list.html')
 
-    def test_invalid_POST_passes_form_to_template(self):
+    def test_invalid_item_POST_passes_form_to_template(self):
         response = self.post_invalid_input()
         self.assertIsInstance(response.context['form'], ExistingListItemForm)
 
-    def test_empty_input_shows_error_on_page(self):
+    def test_empty_item_input_shows_error_on_page(self):
         response = self.post_invalid_input()
         self.assertContains(response, escape(ERROR_MESSAGES['blank item']))
 
-    def test_duplicate_input_shows_error_on_page(self):
+    def test_duplicate_item_input_shows_error_on_page(self):
         list_ = List.objects.create()
         item1 = Item.objects.create(list=list_, text='foo')
         response = self.client.post(
@@ -323,3 +323,39 @@ class MyListsTests(TestCase):
         response = self.client.get('/lists/users/a@b.com/')
 
         self.assertEqual(response.context['owner'], correct_user)
+
+
+class ShareListTests(TestCase):
+
+    def test_POST_redirects_to_lists_page(self):
+        list_ = List.objects.create()
+
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data={'sharee': 'sharee@e.com'}
+        )
+
+        self.assertRedirects(
+            response,
+            f'/lists/{list_.id}/'
+        )
+
+    def test_POST_adds_sharee_to_lists_sharees(self):
+        list_ = List.objects.create()
+        sharee_email = 'sharee@e.com'
+
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data={'sharee': sharee_email}
+        )
+        # the following line is not actually needed because the particular
+        # attribute we are testing is a @property that executes a DB query
+        # when we call it, not a DB field that is only refreshed when
+        # certain operations are performed.
+        #list_.refresh_from_db()
+
+        self.assertIn(
+            sharee_email,
+            list_.sharees.values_list('email', flat=True)
+        )
+
